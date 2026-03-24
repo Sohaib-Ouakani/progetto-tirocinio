@@ -26,4 +26,7 @@ gitHooks {
     createHooks()
 }
 
-rootProject.name = "Template-for-Kotlin-Multiplatform-Projects".lowercase()
+include(":frontend")
+include(":backend")
+
+rootProject.name = "Findaname-Project".lowercase()
