@@ -28,5 +28,6 @@ gitHooks {
 
 include(":frontend")
 include(":backend")
+include(":fmu-kt")
 
 rootProject.name = "Findaname-Project".lowercase()

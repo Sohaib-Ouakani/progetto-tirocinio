@@ -1,7 +1,6 @@
 @file:OptIn(ExperimentalWasmDsl::class)
 
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
@@ -16,23 +15,13 @@ repositories {
 }
 
 kotlin {
-    jvmToolchain(8)
-
-    jvm {
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
-        compilations.all {
-            compileTaskProvider.configure {
-                compilerOptions {
-                    jvmTarget = JvmTarget.JVM_1_8
-                }
-            }
-        }
-    }
 
     sourceSets {
-        val commonMain by getting { }
+        val commonMain by getting {
+            dependencies {
+                implementation(project(":fmu-kt"))
+            }
+        }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
@@ -41,23 +30,14 @@ kotlin {
     }
 
     val nativeSetup: KotlinNativeTarget.() -> Unit = {
-
-        compilations["main"].cinterops {
-            val libfmi by creating {
-                definitionFile = file("src/nativeInterop/cinterop/libfmi.def")
-            }
-        }
-
         binaries {
-            all {
-                linkerOpts(
-                    "-L$rootDir/backend/libs/fmilib/lib",
-                    "-lfmilib_shared",
-                    "-Wl,-rpath,$rootDir/backend/libs/fmilib/lib"
-                )
-            }
             executable {
                 entryPoint = "main"
+                linkerOpts(
+                    "-L${rootProject.projectDir}/fmu-kt/libs/fmilib/lib",
+                    "-lfmilib_shared",
+                    "-Wl,-rpath,${rootProject.projectDir}/fmu-kt/libs/fmilib/lib"
+                )
             }
         }
     }
