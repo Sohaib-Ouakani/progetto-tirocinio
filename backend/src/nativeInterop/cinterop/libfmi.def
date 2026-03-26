@@ -1,0 +1,9 @@
+headers = fmilib.h
+
+headerFilter = FMI/* FMI1/* FMI2/* FMI3/*
+
+compilerOpts = -I/Users/sohaibouakani/Desktop/tirocinio/progetto-tirocinio/template-for-kotlin-multiplatform-projects\
+/backend/libs/fmilib/include -DFMILIB_EXPORT=
+
+linkerOpts = -L/Users/sohaibouakani/Desktop/tirocinio/progetto-tirocinio/template-for-kotlin-multiplatform-projects\
+/backend/libs/fmilib/lib -lfmilib_shared

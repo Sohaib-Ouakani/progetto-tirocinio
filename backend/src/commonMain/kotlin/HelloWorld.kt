@@ -1,7 +1,7 @@
 /**
  * Application entrypoint.
  */
-fun main() {
+fun hello(who: String) {
     //println("Hello, ${Platform.name}!")
-    println("Hello from Backend")
+    println("Hello from $who")
 }

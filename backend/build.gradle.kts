@@ -40,29 +40,25 @@ kotlin {
         }
     }
 
-    js(IR) {
-        browser()
-        nodejs()
-        binaries.library()
-    }
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-        nodejs()
-        d8()
-        binaries.library()
-    }
-
-    wasmWasi {
-        nodejs()
-        binaries.library()
-    }
-
     val nativeSetup: KotlinNativeTarget.() -> Unit = {
+
+        compilations["main"].cinterops {
+            val libfmi by creating {
+                definitionFile = file("src/nativeInterop/cinterop/libfmi.def")
+            }
+        }
+
         binaries {
-            sharedLib()
-            staticLib()
+            all {
+                linkerOpts(
+                    "-L$rootDir/backend/libs/fmilib/lib",
+                    "-lfmilib_shared",
+                    "-Wl,-rpath,$rootDir/backend/libs/fmilib/lib"
+                )
+            }
+            executable {
+                entryPoint = "main"
+            }
         }
     }
 
