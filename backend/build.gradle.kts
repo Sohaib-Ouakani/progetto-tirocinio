@@ -1,10 +1,8 @@
-@file:OptIn(ExperimentalWasmDsl::class)
-
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlinxSerialization)
 }
 
 group = "org.findaname"
@@ -20,6 +18,12 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":fmu-kt"))
+                implementation(libs.kotlinxSerializationJson)
+                implementation(libs.ktor.serialization.kotlinx.json)
+                implementation(libs.ktor.server.core)
+                implementation(libs.ktor.server.cio)
+                implementation(libs.ktor.server.host.common)
+                implementation(libs.ktor.server.content.negotiation)
             }
         }
         val commonTest by getting {
@@ -33,6 +37,9 @@ kotlin {
         binaries {
             executable {
                 entryPoint = "main"
+                runTaskProvider?.configure {
+                    args(projectDir.absolutePath)
+                }
                 linkerOpts(
                     "-L${rootProject.projectDir}/fmu-kt/libs/fmilib/lib",
                     "-lfmilib_shared",
@@ -42,7 +49,7 @@ kotlin {
         }
     }
 
-    //applyDefaultHierarchyTemplate()
+    applyDefaultHierarchyTemplate()
     /*
      * Linux 64
      */

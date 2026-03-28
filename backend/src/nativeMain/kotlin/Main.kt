@@ -1,7 +1,7 @@
 import kotlinx.cinterop.ExperimentalForeignApi
 
 @OptIn(ExperimentalForeignApi::class)
-fun main() {
+fun nomain() {
     hello("backend")
     println(helloFromFmuKt())
     prova()

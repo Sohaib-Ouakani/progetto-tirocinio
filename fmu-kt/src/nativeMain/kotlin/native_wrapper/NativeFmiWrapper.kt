@@ -1,5 +1,6 @@
 package native_wrapper
 
+import kotlin.experimental.ExperimentalNativeApi
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.DoubleVar
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -20,7 +21,7 @@ enum class DLL_STATUS {
 
 const val FMU_PATH = "./resources/models/result.fmu"
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 class NativeFmiWrapper(val path: String, val resources: String) : AutoCloseable {
     var context: CPointer<fmi_import_context_t>? = fmi_import_allocate_context(null)
     var fmi: CPointer<cnames.structs.fmi2_import_t>? = null
@@ -30,13 +31,18 @@ class NativeFmiWrapper(val path: String, val resources: String) : AutoCloseable 
     var simulationConfig: SimulationConfig? = null
 
     init {
-        val recompiler = FmuRecompiler()
-        recompiler.recompile(path, FMU_PATH)
-        val version = fmi_import_get_fmi_version(
-            this.context,
-            FMU_PATH,
-            resources
-        )
+        if (Platform.osFamily != OsFamily.WINDOWS) {
+            println("Running on non-Windows OS, recompiling FMU")
+            val recompiler = FmuRecompiler()
+            recompiler.recompile(path, FMU_PATH)
+            val version = fmi_import_get_fmi_version(
+                this.context,
+                FMU_PATH,
+                resources
+            )
+        } else {
+            println("Running on Windows, skipping FMU recompilation")
+        }
         this.fmi = fmi2_import_parse_xml(context, resources, null)
         fmuInfo = getInfo()
 

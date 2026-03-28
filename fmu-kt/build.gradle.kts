@@ -39,7 +39,7 @@ kotlin {
         }
     }
 
-   // applyDefaultHierarchyTemplate()
+    applyDefaultHierarchyTemplate()
     linuxX64(nativeSetup)
     linuxArm64(nativeSetup)
     mingwX64(nativeSetup)
