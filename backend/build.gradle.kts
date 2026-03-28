@@ -42,7 +42,7 @@ kotlin {
         }
     }
 
-    applyDefaultHierarchyTemplate()
+    //applyDefaultHierarchyTemplate()
     /*
      * Linux 64
      */
@@ -57,13 +57,13 @@ kotlin {
      */
     macosX64(nativeSetup)
     macosArm64(nativeSetup)
-    iosArm64(nativeSetup)
-    iosSimulatorArm64(nativeSetup)
-    watchosArm32(nativeSetup)
-    watchosArm64(nativeSetup)
-    watchosSimulatorArm64(nativeSetup)
-    tvosArm64(nativeSetup)
-    tvosSimulatorArm64(nativeSetup)
+//    iosArm64(nativeSetup)
+//    iosSimulatorArm64(nativeSetup)
+//    watchosArm32(nativeSetup)
+//    watchosArm64(nativeSetup)
+//    watchosSimulatorArm64(nativeSetup)
+//    tvosArm64(nativeSetup)
+//    tvosSimulatorArm64(nativeSetup)
 
     targets.all {
         compilations.all {

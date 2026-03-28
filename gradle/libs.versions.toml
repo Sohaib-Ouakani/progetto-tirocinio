@@ -1,8 +1,10 @@
 [versions]
 kotlin = "2.3.20"
 compose = "1.8.0"
+kotlinxSerialization = "1.8.0"
 
 [libraries]
+kotlinxSerializationJson = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
 [bundles]
 
@@ -10,3 +12,4 @@ compose = "1.8.0"
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

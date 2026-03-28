@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlinxSerialization)
 }
 
 group = "org.findaname"
@@ -30,17 +31,25 @@ kotlin {
         }
     }
 
-    applyDefaultHierarchyTemplate()
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(libs.kotlinxSerializationJson)
+            }
+        }
+    }
+
+   // applyDefaultHierarchyTemplate()
     linuxX64(nativeSetup)
     linuxArm64(nativeSetup)
     mingwX64(nativeSetup)
     macosX64(nativeSetup)
     macosArm64(nativeSetup)
-    iosArm64(nativeSetup)
-    iosSimulatorArm64(nativeSetup)
-    watchosArm32(nativeSetup)
-    watchosArm64(nativeSetup)
-    watchosSimulatorArm64(nativeSetup)
-    tvosArm64(nativeSetup)
-    tvosSimulatorArm64(nativeSetup)
+//    iosArm64(nativeSetup)
+//    iosSimulatorArm64(nativeSetup)
+//    watchosArm32(nativeSetup)
+//    watchosArm64(nativeSetup)
+//    watchosSimulatorArm64(nativeSetup)
+//    tvosArm64(nativeSetup)
+//    tvosSimulatorArm64(nativeSetup)
 }
