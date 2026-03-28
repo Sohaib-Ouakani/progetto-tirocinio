@@ -2,6 +2,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import cafe.adriel.voyager.navigator.Navigator
+import com.example.fmi_client.screens.HomeScreen
 
 @Composable
 fun App() {
@@ -16,5 +18,12 @@ fun App() {
                 Text("Click me")
             }
         }
+    }
+}
+
+@Composable
+fun App2() {
+    MaterialTheme {
+        Navigator(HomeScreen())
     }
 }

@@ -24,6 +24,7 @@ kotlin {
                 implementation(libs.ktor.server.cio)
                 implementation(libs.ktor.server.host.common)
                 implementation(libs.ktor.server.content.negotiation)
+                implementation(libs.ktor.server.cors)
             }
         }
         val commonTest by getting {
