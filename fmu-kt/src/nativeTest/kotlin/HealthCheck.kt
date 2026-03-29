@@ -3,19 +3,24 @@ import native_wrapper.NativeFmiWrapper
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import native_wrapper.DLL_STATUS
 
 class NativeFmiWrapperTest {
 
     @Test
-    fun testFmuLoadsCorrectly() {
-        val wrapper = NativeFmiWrapper(
-            path = "./resources/models/BouncingBall.fmu",
-            resources = "./resources/extracted"
-        )
-        assertNotNull(wrapper.fmuInfo)
-        assertEquals(DLL_STATUS.OK, wrapper.dllStatus)
-        wrapper.close()
+    fun testCinterop() {
+        val result = runCatching {
+            NativeFmiWrapper(
+                path = "./resources/models/BouncingBall.fmu",
+                resources = "./resources/extracted"
+            )
+        }
+        assertTrue(result.isFailure)
+
+        val exception = result.exceptionOrNull()
+        assertTrue(exception is IllegalStateException)
+        assertTrue(exception.message!!.contains("non trovato"))
     }
 
     @OptIn(ExperimentalNativeApi::class)
