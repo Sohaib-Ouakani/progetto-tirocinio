@@ -1,6 +1,7 @@
 package configuration
 
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.MonitoringEvent
 import io.ktor.server.routing.*
 import io.ktor.server.response.*
 import model.fmu.Fmu
@@ -10,6 +11,14 @@ fun Application.configureRouting(baseDir: String) {
     val extractedPath = "$baseDir/resources/extracted"
 
     var fmu: Fmu? = null
+
+    install(createApplicationPlugin("FmuCleanup") {
+        on(MonitoringEvent(ApplicationStopped)) {
+            fmu?.close()
+            fmu = null
+        }
+    })
+
     routing {
         get("/health") {
             call.respondText("OK")
@@ -32,15 +41,14 @@ fun Application.configureRouting(baseDir: String) {
             }
 
             get("/info") {
-                if (fmu == null) {
-                    return@get call.respondText(
-                        "please initiate the fmu by making a get request to /init with fmu path and path to unpack it"
-                    )
+                val currentFmu = fmu ?: return@get call.respondText("please initiate...")
+                try {
+                    val result = currentFmu.fmuInfo
+                    call.respond(result)
+                } finally {
+                    currentFmu.close()
+                    fmu = null
                 }
-                val result = fmu.fmuInfo
-                fmu.close()
-
-                call.respond(result)
             }
         }
     }

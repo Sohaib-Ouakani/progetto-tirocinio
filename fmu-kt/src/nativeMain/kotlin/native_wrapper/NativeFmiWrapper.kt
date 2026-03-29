@@ -131,62 +131,69 @@ class NativeFmiWrapper(val path: String, val resources: String) : AutoCloseable 
         // Una lista per ogni variabile
         val results = variablesToRead.associateWith { mutableListOf<Double>() }
 
-        memScoped {
-            // Risolvi i value reference per ogni variabile
-            val vrMap = variablesToRead.associateWith { varName ->
-                val variable = fmi2_import_get_variable_by_name(fmi, varName)
-                    ?: error("Variabile '$varName' non trovata nell'FMU")
-                fmi2_import_get_variable_vr(variable)
-            }
-
-            val n = variablesToRead.size
-            val vrArray = allocArray<fmi2_value_reference_tVar>(n)
-            val valueArray = allocArray<DoubleVar>(n)
-
-            variablesToRead.forEachIndexed { i, varName ->
-                vrArray[i] = vrMap[varName]!!
-            }
-
-
-            println("---- Simulation Start ----")
-
-            while (time < stopTime) {
-
-                fmi2_import_do_step(
-                    fmi,
-                    time,
-                    step,
-                    1
-                )
-
-                fmi2_import_get_real(
-                    fmi,
-                    vrArray,
-                    n.toULong(),
-                    valueArray
-                )
-
-                timestamps.add(time)
-                variablesToRead.forEachIndexed { i, varName ->
-                    results[varName]!!.add(valueArray[i])
+        try {
+            memScoped {
+                // Risolvi i value reference per ogni variabile
+                val vrMap = variablesToRead.associateWith { varName ->
+                    val variable = fmi2_import_get_variable_by_name(fmi, varName)
+                        ?: error("Variabile '$varName' non trovata nell'FMU")
+                    fmi2_import_get_variable_vr(variable)
                 }
 
-                time += step
+                val n = variablesToRead.size
+                val vrArray = allocArray<fmi2_value_reference_tVar>(n)
+                val valueArray = allocArray<DoubleVar>(n)
+
+                variablesToRead.forEachIndexed { i, varName ->
+                    vrArray[i] = vrMap[varName]!!
+                }
+
+
+                println("---- Simulation Start ----")
+
+                while (time < stopTime) {
+
+                    fmi2_import_do_step(
+                        fmi,
+                        time,
+                        step,
+                        1
+                    )
+
+                    fmi2_import_get_real(
+                        fmi,
+                        vrArray,
+                        n.toULong(),
+                        valueArray
+                    )
+
+                    timestamps.add(time)
+                    variablesToRead.forEachIndexed { i, varName ->
+                        results[varName]!!.add(valueArray[i])
+                    }
+
+                    time += step
+                }
+
+                println("---- Simulation End ----")
+
+                fmi2_import_terminate(fmi)
+                fmi2_import_free_instance(fmi)
+
+                experimentInstance = null
+                simulationConfig = null
             }
-
-            println("---- Simulation End ----")
-
-            fmi2_import_terminate(fmi)
-            fmi2_import_free_instance(fmi)
-
+            return SimulationResult(
+                timestamps = timestamps,
+                variables = results,
+                config = config
+            )
+        } finally {
+            runCatching { fmi2_import_terminate(fmi) }
+            runCatching { fmi2_import_free_instance(fmi) }
             experimentInstance = null
             simulationConfig = null
         }
-        return SimulationResult(
-            timestamps = timestamps,
-            variables = results,
-            config = config
-        )
     }
 
     fun destroyFmi() {
