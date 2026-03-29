@@ -31,18 +31,20 @@ class NativeFmiWrapper(val path: String, val resources: String) : AutoCloseable 
     var simulationConfig: SimulationConfig? = null
 
     init {
+        var fmuFile = FMU_PATH
         if (Platform.osFamily != OsFamily.WINDOWS) {
             println("Running on non-Windows OS, recompiling FMU")
             val recompiler = FmuRecompiler()
-            recompiler.recompile(path, FMU_PATH)
-            val version = fmi_import_get_fmi_version(
-                this.context,
-                FMU_PATH,
-                resources
-            )
+            recompiler.recompile(path, fmuFile)
         } else {
+            fmuFile = path
             println("Running on Windows, skipping FMU recompilation")
         }
+        val version = fmi_import_get_fmi_version(
+            this.context,
+            fmuFile,
+            resources
+        )
         this.fmi = fmi2_import_parse_xml(context, resources, null)
         fmuInfo = getInfo()
 
