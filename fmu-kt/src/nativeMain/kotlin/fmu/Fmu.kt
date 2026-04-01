@@ -1,4 +1,4 @@
-package model.fmu
+package fmu
 
 import native_wrapper.DLL_STATUS
 import native_wrapper.NativeFmiWrapper

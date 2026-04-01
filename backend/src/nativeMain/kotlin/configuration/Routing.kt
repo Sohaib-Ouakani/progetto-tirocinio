@@ -4,7 +4,7 @@ import io.ktor.server.application.*
 import io.ktor.server.application.hooks.MonitoringEvent
 import io.ktor.server.routing.*
 import io.ktor.server.response.*
-import model.fmu.Fmu
+import fmu.Fmu
 
 fun Application.configureRouting(baseDir: String) {
     val fmuPath = "$baseDir/resources/models/BouncingBall.fmu"
