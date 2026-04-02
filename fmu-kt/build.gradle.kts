@@ -12,19 +12,28 @@ repositories {
     mavenCentral()
 }
 
+val cLibrary by configurations.creating
+
+dependencies {
+    cLibrary(project(":fmilib"))
+}
+
 kotlin {
     val nativeSetup: KotlinNativeTarget.() -> Unit = {
         compilations["main"].cinterops {
             val libfmi by creating {
-                definitionFile = file("src/nativeInterop/cinterop/libfmi.def")
+                headers = files("fmilib.h")
+                compilerOpts("-I/Users/sohaibouakani/Desktop/tirocinio/progetto-tirocinio/template-for-kotlin-multiplatform-projects/fmu-kt/libs/fmilib/include -DFMILIB_EXPORT=")
+//                definitionFile = file("src/nativeInterop/cinterop/libfmi.def")
             }
         }
         binaries {
             all {
+                val fmilibBuildDir = project(":fmilib").layout.buildDirectory.dir("cmake/fmilib/").get().asFile.absoluteFile
                 linkerOpts(
-                    "-L${projectDir}/libs/fmilib/lib",
+                    "-L${fmilibBuildDir.resolve("linux-amd64").absolutePath}",
                     "-lfmilib_shared",
-                    "-Wl,-rpath,${projectDir}/libs/fmilib/lib"
+                    "-Wl,-rpath,${fmilibBuildDir.resolve("linux-amd64").absolutePath}"
                 )
             }
             staticLib()

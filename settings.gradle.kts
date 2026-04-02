@@ -26,8 +26,9 @@ gitHooks {
     createHooks()
 }
 
-include(":frontend")
-include(":backend")
-include(":fmu-kt")
+include("backend")
+include("fmilib")
+include("fmu-kt")
+include("frontend")
 
 rootProject.name = "Findaname-Project".lowercase()
