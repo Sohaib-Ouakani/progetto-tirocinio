@@ -22,7 +22,7 @@ kotlin {
     val nativeSetup: KotlinNativeTarget.() -> Unit = {
         compilations["main"].cinterops {
             val libfmi by creating {
-                headers = files("fmilib.h")
+                headers = files("libs/fmilib/include/fmilib.h")
                 compilerOpts("-I/Users/sohaibouakani/Desktop/tirocinio/progetto-tirocinio/template-for-kotlin-multiplatform-projects/fmu-kt/libs/fmilib/include -DFMILIB_EXPORT=")
 //                definitionFile = file("src/nativeInterop/cinterop/libfmi.def")
             }
@@ -50,9 +50,9 @@ kotlin {
 
     applyDefaultHierarchyTemplate()
     linuxX64(nativeSetup)
-    linuxArm64(nativeSetup)
+//    linuxArm64(nativeSetup)
     mingwX64(nativeSetup)
-    macosX64(nativeSetup)
+//    macosX64(nativeSetup)
     macosArm64(nativeSetup)
 //    iosArm64(nativeSetup)
 //    iosSimulatorArm64(nativeSetup)

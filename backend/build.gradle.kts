@@ -55,7 +55,7 @@ kotlin {
      * Linux 64
      */
     linuxX64(nativeSetup)
-    linuxArm64(nativeSetup)
+//    linuxArm64(nativeSetup)
     /*
      * Win 64
      */
@@ -63,7 +63,7 @@ kotlin {
     /*
      * Apple OSs
      */
-    macosX64(nativeSetup)
+//    macosX64(nativeSetup)
     macosArm64(nativeSetup)
 //    iosArm64(nativeSetup)
 //    iosSimulatorArm64(nativeSetup)
