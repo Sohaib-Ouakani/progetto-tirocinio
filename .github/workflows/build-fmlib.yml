@@ -9,7 +9,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     container:
-      image: debian:bullseye   # glibc 2.28, compatibile con KN
+      image: ubuntu:14.04
     steps:
       - name: Install dependencies
         run: |

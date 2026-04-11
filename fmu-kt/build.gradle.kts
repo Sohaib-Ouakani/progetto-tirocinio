@@ -40,20 +40,11 @@ kotlin {
         }
         binaries {
             all {
-                if (targetName == "linuxX64") {
-                    // Statica su Linux: evita il problema glibc
-                    linkerOpts(
-                        "-L${libDir}",
-                        "-lfmilib",
-                        "-ldl"   // FMILibrary usa dlopen internamente
-                    )
-                } else {
-                    linkerOpts(
-                        "-L${libDir}",
-                        "-lfmilib_shared",
-                        "-Wl,-rpath,${libDir}"
-                    )
-                }
+                linkerOpts(
+                    "-L${libDir}",
+                    "-lfmilib_shared",
+                    "-Wl,-rpath,${libDir}"
+                )
             }
             staticLib()
         }
