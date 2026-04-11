@@ -9,9 +9,9 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     container:
-      image: debian:stretch-20230612-slim
+      image: debian:stretch
     steps:
-      - name: Fix apt sources to archive.debian.org
+      - name: Fix apt sources and install dependencies
         run: |
           echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.list
           echo "deb http://archive.debian.org/debian-security stretch/updates main" >> /etc/apt/sources.list
