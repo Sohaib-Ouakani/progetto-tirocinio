@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-24.04
             test-task: linuxX64Test
           - os: macos-latest
             test-task: macosArm64Test
