@@ -9,8 +9,14 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:14.04
+      image: debian:stretch-20230612-slim
     steps:
+      - name: Fix apt sources to archive.debian.org
+        run: |
+          echo "deb http://archive.debian.org/debian stretch main" > /etc/apt/sources.list
+          echo "deb http://archive.debian.org/debian-security stretch/updates main" >> /etc/apt/sources.list
+          apt-get update -o Acquire::Check-Valid-Until=false
+
       - name: Install dependencies
         run: |
           apt-get update
