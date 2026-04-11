@@ -6,22 +6,39 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-24.04
-            test-task: linuxX64Test
-            container: dockcross/linux-x64:latest  # glibc compatibile con KN
-          - os: macos-latest
-            test-task: macosArm64Test
-            container: ""
-          - os: windows-latest
-            test-task: mingwX64Test
-            container: ""
+  build-linux:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:buster   # glibc 2.28, compatibile con KN
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-    runs-on: ${{ matrix.os }}
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y cmake build-essential curl unzip
 
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build and test
+        run: |
+          ./gradlew cmakeBuild
+          ./gradlew :fmu-kt:linuxX64Test
+
+      - name: Upload install dir
+        uses: actions/upload-artifact@v4
+        with:
+          name: fmilib-linux
+          path: fmilib/build/fmilib-install/
+
+  build-macos:
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,14 +50,37 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build FMILibrary
-        run: ./gradlew cmakeBuild
-
-      - name: Run tests
-        run: ./gradlew :fmu-kt:${{ matrix.test-task }}
+      - name: Build and test
+        run: |
+          ./gradlew cmakeBuild
+          ./gradlew :fmu-kt:macosArm64Test
 
       - name: Upload install dir
         uses: actions/upload-artifact@v4
         with:
-          name: fmilib-${{ matrix.os }}
+          name: fmilib-macos
+          path: fmilib/build/fmilib-install/
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build and test
+        run: |
+          ./gradlew cmakeBuild
+          ./gradlew :fmu-kt:mingwX64Test
+
+      - name: Upload install dir
+        uses: actions/upload-artifact@v4
+        with:
+          name: fmilib-windows
           path: fmilib/build/fmilib-install/
