@@ -12,10 +12,13 @@ jobs:
         include:
           - os: ubuntu-24.04
             test-task: linuxX64Test
+            container: dockcross/linux-x64:latest  # glibc compatibile con KN
           - os: macos-latest
             test-task: macosArm64Test
+            container: ""
           - os: windows-latest
             test-task: mingwX64Test
+            container: ""
 
     runs-on: ${{ matrix.os }}
 
