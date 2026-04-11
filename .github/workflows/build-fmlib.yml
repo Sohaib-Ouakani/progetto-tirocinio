@@ -3,20 +3,26 @@ name: Build FMILibrary
 on:
   push:
     branches: [main]
-  workflow_dispatch:   # permette di triggerare manualmente
+  workflow_dispatch:
 
 jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            test-task: linuxX64Test
+          - os: macos-latest
+            test-task: macosArm64Test
+          - os: windows-latest
+            test-task: mingwX64Test
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: recursive  # Clona anche i submodule
+          submodules: recursive
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -27,8 +33,11 @@ jobs:
       - name: Build FMILibrary
         run: ./gradlew cmakeBuild
 
+      - name: Run tests
+        run: ./gradlew :fmu-kt:${{ matrix.test-task }}
+
       - name: Upload install dir
         uses: actions/upload-artifact@v4
         with:
           name: fmilib-${{ matrix.os }}
-          path: build/fmilib-install/
+          path: fmilib/build/fmilib-install/

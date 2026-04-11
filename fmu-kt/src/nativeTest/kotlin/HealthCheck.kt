@@ -4,10 +4,13 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlinx.cinterop.ExperimentalForeignApi
+import libfmi.fmi_version_2_0_enu
 import native_wrapper.DLL_STATUS
 
 class NativeFmiWrapperTest {
 
+    @OptIn(ExperimentalForeignApi::class)
     @Test
     fun testCinterop() {
         //errore creato appositamente per fallire,
@@ -23,6 +26,8 @@ class NativeFmiWrapperTest {
         val exception = result.exceptionOrNull()
         assertTrue(exception is IllegalStateException)
         assertTrue(exception.message!!.contains("non trovato"))
+
+        assertNotNull(fmi_version_2_0_enu)
     }
 
 //    @OptIn(ExperimentalNativeApi::class)
