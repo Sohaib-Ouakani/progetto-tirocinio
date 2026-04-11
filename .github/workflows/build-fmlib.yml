@@ -1,0 +1,32 @@
+name: Build FMILibrary
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # permette di triggerare manualmente
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build FMILibrary
+        run: ./gradlew cmakeBuild
+
+      - name: Upload install dir
+        uses: actions/upload-artifact@v4
+        with:
+          name: fmilib-${{ matrix.os }}
+          path: build/fmilib-install/
