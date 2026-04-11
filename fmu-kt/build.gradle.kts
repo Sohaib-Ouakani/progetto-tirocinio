@@ -17,23 +17,33 @@ val cLibrary by configurations.creating
 dependencies {
     cLibrary(project(":fmilib"))
 }
+val platformDirName = mapOf(
+    "macosArm64"  to "mac-aarch64",
+    "linuxX64"    to "linux-amd64",
+    "mingwX64"    to "windows-amd64"
+)
+
+val fmilibInstallDir = project(":fmilib").layout.buildDirectory.dir("fmilib-install").get().asFile
 
 kotlin {
     val nativeSetup: KotlinNativeTarget.() -> Unit = {
+        val platformDir = fmilibInstallDir
+            .resolve(platformDirName[targetName] ?: error("Platform $targetName sconosciuta"))
+        val includeDir = platformDir.resolve("include")
+        val libDir = platformDir.resolve("lib")
+
         compilations["main"].cinterops {
             val libfmi by creating {
-                headers = files("libs/fmilib/include/fmilib.h")
-                compilerOpts("-I/Users/sohaibouakani/Desktop/tirocinio/progetto-tirocinio/template-for-kotlin-multiplatform-projects/fmu-kt/libs/fmilib/include -DFMILIB_EXPORT=")
-//                definitionFile = file("src/nativeInterop/cinterop/libfmi.def")
+                headers = files(includeDir.resolve("fmilib.h"))
+                compilerOpts("-I${includeDir}", "-DFMILIB_EXPORT=")
             }
         }
         binaries {
             all {
-                val fmilibBuildDir = project(":fmilib").layout.buildDirectory.dir("cmake/fmilib/").get().asFile.absoluteFile
                 linkerOpts(
-                    "-L${fmilibBuildDir.resolve("linux-amd64").absolutePath}",
+                    "-L${libDir}",
                     "-lfmilib_shared",
-                    "-Wl,-rpath,${fmilibBuildDir.resolve("linux-amd64").absolutePath}"
+                    "-Wl,-rpath,${libDir}"
                 )
             }
             staticLib()

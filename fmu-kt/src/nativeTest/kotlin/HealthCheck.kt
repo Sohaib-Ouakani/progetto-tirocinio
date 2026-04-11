@@ -10,6 +10,8 @@ class NativeFmiWrapperTest {
 
     @Test
     fun testCinterop() {
+        //errore creato appositamente per fallire,
+        // fmu-kt non può raggiungere la cartelle delle FMU perche stanno nel mdoulo backend
         val result = runCatching {
             NativeFmiWrapper(
                 path = "./resources/models/BouncingBall.fmu",
@@ -23,14 +25,14 @@ class NativeFmiWrapperTest {
         assertTrue(exception.message!!.contains("non trovato"))
     }
 
-    @OptIn(ExperimentalNativeApi::class)
-    @Test
-    fun testFmuInfoHasVariables() {
-        val wrapper = NativeFmiWrapper(
-            path = "path/al/tuo.fmu",
-            resources = "path/resources/"
-        )
-        assert(wrapper.fmuInfo.variables.isNotEmpty())
-        wrapper.close()
-    }
+//    @OptIn(ExperimentalNativeApi::class)
+//    @Test
+//    fun testFmuInfoHasVariables() {
+//        val wrapper = NativeFmiWrapper(
+//            path = "path/al/tuo.fmu",
+//            resources = "path/resources/"
+//        )
+//        assert(wrapper.fmuInfo.variables.isNotEmpty())
+//        wrapper.close()
+//    }
 }
