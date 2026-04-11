@@ -3,6 +3,7 @@ on:
   push:
     branches-ignore:
       - 'dependabot/**'
+      - 'ci-test'
     paths-ignore:
       - '.gitignore'
       - '.mergify.yml'
