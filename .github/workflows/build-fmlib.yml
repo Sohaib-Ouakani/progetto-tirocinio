@@ -79,6 +79,9 @@ jobs:
       - name: List fmilib windows outputs
         run: Get-ChildItem -Recurse "${{ github.workspace }}\fmilib\build\fmilib-install\windows-amd64\lib\"
 
+      - name: Show fmilib.h
+        run: Get-Content "${{ github.workspace }}\fmilib\build\fmilib-install\windows-amd64\include\fmilib.h"
+
       - name: Test
         run: |
           ./gradlew :fmu-kt:mingwX64Test
