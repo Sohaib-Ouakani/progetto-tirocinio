@@ -23,10 +23,10 @@ val platformDirName = mapOf(
     "mingwX64"    to "windows-amd64"
 )
 
-// Funzione helper per ottenere la directory della DLL per un dato target
-fun getNativeLibDir(targetName: String): File {
-    val platformDir = fmilibInstallDir.resolve(platformDirName[targetName] ?: error("Unknown target"))
-    return platformDir.resolve("lib")
+// Funzione che restituisce sia lib (per le .dll.a) che bin (per le .dll)
+fun getNativeBinDirs(targetName: String): List<File> {
+    val platformDir = fmilibInstallDir.resolve(platformDirName[targetName] ?: error("Unknown target $targetName"))
+    return listOf(platformDir.resolve("lib"), platformDir.resolve("bin"))
 }
 
 val fmilibInstallDir = project(":fmilib").layout.buildDirectory.dir("fmilib-install").get().asFile
@@ -81,14 +81,18 @@ kotlin {
 
 // Configura tutti i task di esecuzione/test per Windows
 tasks.withType<AbstractExecTask<*>>().configureEach {
-    // Filtra solo i task che eseguono binari Kotlin/Native per mingwX64
-    if (name.startsWith("run") && name.contains("MingwX64", ignoreCase = true) ||
+    // Intercetta i task di esecuzione/test per Windows
+    if ((name.startsWith("run") && name.contains("MingwX64", ignoreCase = true)) ||
         name == "mingwX64Test") {
 
-        val libDir = getNativeLibDir("mingwX64")
+        val binDirs = getNativeBinDirs("mingwX64")
         doFirst {
-            // Aggiungi la directory delle DLL al PATH del processo
-            environment("PATH", "${libDir.absolutePath}${File.pathSeparator}${environment["PATH"]}")
+            val currentPath = environment["PATH"] ?: ""
+            val newPath = binDirs.joinToString(File.pathSeparator) { it.absolutePath } +
+                File.pathSeparator + currentPath
+            environment("PATH", newPath)
+            // Opzionale: logga per debug
+            logger.lifecycle("PATH arricchito con: ${binDirs.joinToString(File.pathSeparator)}")
         }
     }
 }
