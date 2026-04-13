@@ -40,11 +40,15 @@ kotlin {
         }
         binaries {
             all {
-                linkerOpts(
-                    "-L${libDir}",
-                    "-lfmilib_shared",
-                    "-Wl,-rpath,${libDir}"
-                )
+                if (targetName == "mingwX64") {
+                    linkerOpts("L${libDir}", "-lfmilib")
+                } else {
+                    linkerOpts(
+                        "-L${libDir}",
+                        "-lfmilib_shared",
+                        "-Wl,-rpath,${libDir}"
+                    )
+                }
             }
             staticLib()
         }
