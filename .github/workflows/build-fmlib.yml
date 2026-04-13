@@ -77,7 +77,7 @@ jobs:
           ./gradlew cmakeBuild
           
       - name: List fmilib windows outputs
-        run: Get-ChildItem -Recurse "${{ github.workspace }}\fmilib\build\fmilib-install\windows-amd64\lib\"
+        run: Get-ChildItem -Recurse "D:\a\progetto-tirocinio\progetto-tirocinio\fmilib\build\fmilib-install\windows-amd64"
 
       - name: Show fmilib.h
         run: Get-Content "${{ github.workspace }}\fmilib\build\fmilib-install\windows-amd64\include\fmilib.h"
