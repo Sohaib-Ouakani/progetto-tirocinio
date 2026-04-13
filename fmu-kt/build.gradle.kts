@@ -23,6 +23,12 @@ val platformDirName = mapOf(
     "mingwX64"    to "windows-amd64"
 )
 
+// Funzione helper per ottenere la directory della DLL per un dato target
+fun getNativeLibDir(targetName: String): File {
+    val platformDir = fmilibInstallDir.resolve(platformDirName[targetName] ?: error("Unknown target"))
+    return platformDir.resolve("lib")
+}
+
 val fmilibInstallDir = project(":fmilib").layout.buildDirectory.dir("fmilib-install").get().asFile
 
 kotlin {
@@ -40,15 +46,11 @@ kotlin {
         }
         binaries {
             all {
-                if (targetName == "mingwX64") {
-                    linkerOpts("-L${libDir}", "-lfmilib")
-                } else {
-                    linkerOpts(
-                        "-L${libDir}",
-                        "-lfmilib_shared",
-                        "-Wl,-rpath,${libDir}"
-                    )
-                }
+                linkerOpts(
+                    "-L${libDir}",
+                    "-lfmilib_shared",
+                    "-Wl,-rpath,${libDir}"
+                )
             }
             staticLib()
         }
@@ -75,4 +77,18 @@ kotlin {
 //    watchosSimulatorArm64(nativeSetup)
 //    tvosArm64(nativeSetup)
 //    tvosSimulatorArm64(nativeSetup)
+}
+
+// Configura tutti i task di esecuzione/test per Windows
+tasks.withType<AbstractExecTask<*>>().configureEach {
+    // Filtra solo i task che eseguono binari Kotlin/Native per mingwX64
+    if (name.startsWith("run") && name.contains("MingwX64", ignoreCase = true) ||
+        name == "mingwX64Test") {
+
+        val libDir = getNativeLibDir("mingwX64")
+        doFirst {
+            // Aggiungi la directory delle DLL al PATH del processo
+            environment("PATH", "${libDir.absolutePath}${File.pathSeparator}${environment["PATH"]}")
+        }
+    }
 }
