@@ -41,7 +41,7 @@ kotlin {
         binaries {
             all {
                 if (targetName == "mingwX64") {
-                    linkerOpts("L${libDir}", "-lfmilib")
+                    linkerOpts("-L${libDir}", "-lfmilib")
                 } else {
                     linkerOpts(
                         "-L${libDir}",
