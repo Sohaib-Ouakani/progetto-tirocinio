@@ -40,20 +40,11 @@ kotlin {
         }
         binaries {
             all {
-                if (targetName == "mingwX64") {
-                    // Windows: link statico, nessuna DLL necessaria a runtime
-                    linkerOpts(
-                        "-L${libDir}",
-                        "-lfmilib"   // .a statica, non _shared
-                    )
-                } else {
-                    // Linux/macOS: link dinamico con rpath
-                    linkerOpts(
-                        "-L${libDir}",
-                        "-lfmilib_shared",
-                        "-Wl,-rpath,${libDir}"
-                    )
-                }
+                linkerOpts(
+                    "-L${libDir}",
+                    "-lfmilib_shared",
+                    "-Wl,-rpath,${libDir}"
+                )
             }
             staticLib()
         }
