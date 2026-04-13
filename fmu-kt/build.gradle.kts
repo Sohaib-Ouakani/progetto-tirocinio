@@ -79,20 +79,15 @@ kotlin {
 //    tvosSimulatorArm64(nativeSetup)
 }
 
-// Configura tutti i task di esecuzione/test per Windows
-tasks.withType<AbstractExecTask<*>>().configureEach {
-    // Intercetta i task di esecuzione/test per Windows
-    if ((name.startsWith("run") && name.contains("MingwX64", ignoreCase = true)) ||
-        name == "mingwX64Test") {
-
+tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest>().configureEach {
+    if (name == "mingwX64Test") {
         val binDirs = getNativeBinDirs("mingwX64")
         doFirst {
             val currentPath = environment["PATH"] ?: ""
             val newPath = binDirs.joinToString(File.pathSeparator) { it.absolutePath } +
                 File.pathSeparator + currentPath
             environment("PATH", newPath)
-            // Opzionale: logga per debug
-            logger.lifecycle("PATH arricchito con: ${binDirs.joinToString(File.pathSeparator)}")
+            logger.lifecycle("PATH per mingwX64Test: $newPath")
         }
     }
 }

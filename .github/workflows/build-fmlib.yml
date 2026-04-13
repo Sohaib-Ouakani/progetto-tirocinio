@@ -82,6 +82,20 @@ jobs:
       - name: Show fmilib.h
         run: Get-Content "${{ github.workspace }}\fmilib\build\fmilib-install\windows-amd64\include\fmilib.h"
 
+      - name: Check DLL dependencies with objdump
+        shell: pwsh
+        run: |
+          $objdumpPath = "C:\Users\runneradmin\.konan\dependencies\msys2-mingw-w64-x86_64-2\bin\objdump.exe"
+          $dllPath = "D:\a\progetto-tirocinio\progetto-tirocinio\fmilib\build\fmilib-install\windows-amd64\bin\libfmilib_shared.dll"
+          if (Test-Path $objdumpPath) {
+            Write-Host "objdump trovato a $objdumpPath"
+            & $objdumpPath -p $dllPath | Select-String "DLL Name"
+          } else {
+            Write-Host "objdump NON trovato. Cercando alternativa..."
+            # Fallback: prova a usare objdump dal PATH
+            objdump -p $dllPath | Select-String "DLL Name"
+          }
+
       - name: Test
         run: |
           ./gradlew :fmu-kt:mingwX64Test
