@@ -24,9 +24,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build and test
+      - name: Build
         run: |
           ./gradlew cmakeBuild
+
+      - name: Test
+        run: |
           ./gradlew :fmu-kt:linuxX64Test
 
       - name: Upload install dir
