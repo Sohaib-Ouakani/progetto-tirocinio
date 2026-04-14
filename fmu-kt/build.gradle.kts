@@ -41,7 +41,7 @@ kotlin {
         compilations["main"].cinterops {
             val libfmi by creating {
                 headers = files(includeDir.resolve("fmilib.h"))
-                compilerOpts("-I${includeDir}", "-DFMILIB_STATIC_LIB_ONLY")
+                compilerOpts("-I${includeDir}")
             }
         }
         binaries {
