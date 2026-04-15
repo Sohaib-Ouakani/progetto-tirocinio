@@ -64,11 +64,20 @@ kotlin {
         binaries {
             all {
                 if (targetName == "linuxX64") {
+//                    linkerOpts(
+//                        "-L${libDir}",
+//                        "-lfmilib_shared",
+//                        "-Wl,-rpath,${libDir}",
+//                        "-L/usr/lib/x86_64-linux-gnu"        // libdl, libm, libc, ecc.
+//                    )
                     linkerOpts(
                         "-L${libDir}",
                         "-lfmilib_shared",
                         "-Wl,-rpath,${libDir}",
-                        "-L/usr/lib/x86_64-linux-gnu"        // libdl, libm, libc, ecc.
+                        "-L/usr/lib/x86_64-linux-gnu",
+                        "-Wl,--allow-shlib-undefined",
+                        "-Wl,--unresolved-symbols=ignore-all",
+                        "-Wl,--warn-unresolved-symbols"
                     )
                 } else {
                     linkerOpts(
@@ -83,17 +92,17 @@ kotlin {
     }
 
     // Override linker per Linux — separato da nativeSetup
-    linuxX64 {
-        compilations.all {
-            compileTaskProvider.configure {
-                compilerOptions {
-                    freeCompilerArgs.add(
-                        "-Xoverride-konan-properties=linker.linux_x64=/usr/bin/ld"
-                    )
-                }
-            }
-        }
-    }
+//    linuxX64 {
+//        compilations.all {
+//            compileTaskProvider.configure {
+//                compilerOptions {
+//                    freeCompilerArgs.add(
+//                        "-Xoverride-konan-properties=linker.linux_x64=/usr/bin/ld"
+//                    )
+//                }
+//            }
+//        }
+//    }
 
     sourceSets {
         val commonMain by getting {
