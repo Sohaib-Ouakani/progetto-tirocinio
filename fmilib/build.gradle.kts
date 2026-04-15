@@ -14,7 +14,6 @@ cmake {
             cmakeLists = file("lib/CMakeLists.txt")
 //            targetMachines.addAll(machines.customMachines)
             targetMachines.add(machines.host)
-            cmakeArgs.add("-DXML_POOR_ENTROPY=ON")
         }
     }
 }

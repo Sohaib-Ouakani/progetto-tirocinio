@@ -23,23 +23,6 @@ val platformDirName = mapOf(
     "mingwX64"    to "windows-amd64"
 )
 
-//per trovare il percorso dove sta gcc
-val libGccPath: String by lazy {
-    try {
-        val process = Runtime.getRuntime().exec("gcc -print-file-name=crtbegin.o")
-        val output = process.inputStream.bufferedReader().readText().trim()
-        if (output.isNotEmpty() && output != "crtbegin.o") {
-            File(output).parent // Restituisce la directory contenente crtbegin.o
-        } else {
-            // Fallback nel caso in cui il comando non restituisca un percorso valido
-            "/usr/lib/gcc/x86_64-linux-gnu/11"
-        }
-    } catch (e: Exception) {
-        // Fallback in caso di errore nell'esecuzione del comando
-        "/usr/lib/gcc/x86_64-linux-gnu/11"
-    }
-}
-
 // Funzione che restituisce sia lib (per le .dll.a) che bin (per le .dll)
 fun getNativeBinDirs(targetName: String): List<File> {
     val platformDir = fmilibInstallDir.resolve(platformDirName[targetName] ?: error("Unknown target $targetName"))
