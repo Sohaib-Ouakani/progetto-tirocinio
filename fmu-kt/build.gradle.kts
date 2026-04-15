@@ -59,8 +59,12 @@ kotlin {
     // Override linker per Linux — separato da nativeSetup
     linuxX64 {
         compilations.all {
-            compilerOptions.configure {
-                freeCompilerArgs.add("-Xoverride-konan-properties=linker.linux_x64=/usr/bin/ld")
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add(
+                        "-Xoverride-konan-properties=targetSysRoot.linux_x64=/;linker.linux_x64=/usr/bin/ld"
+                    )
+                }
             }
         }
     }
