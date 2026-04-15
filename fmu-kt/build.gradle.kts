@@ -46,6 +46,17 @@ kotlin {
         }
         binaries {
             all {
+                //workaround
+                if (targetName == "linuxX64") {
+                    linkerOpts.addAll(listOf(
+                        "-L/usr/lib/x86_64-linux-gnu",
+                        "-lc++",
+                        "--allow-shlib-undefined",
+                        "--unresolved-symbols=ignore-all",
+                        "--warn-unresolved-symbols",
+                    ))
+                }
+                //----------
                 linkerOpts(
                     "-L${libDir}",
                     "-lfmilib_shared",
