@@ -63,32 +63,42 @@ kotlin {
         }
         binaries {
             all {
-                linkerOpts(
-                    "-L${libDir}",
-                    "-lfmilib_shared",
-                    "-Wl,-rpath,${libDir}"
-                )
+                if (targetName == "linuxX64") {
+                    linkerOpts(
+                        "-L${libDir}",
+                        "-lfmilib_shared",
+                        "-Wl,-rpath,${libDir}",
+                        "-Wl,-B/usr/lib/x86_64-linux-gnu",   // crt*.o
+                        "-L/usr/lib/x86_64-linux-gnu"        // libdl, libm, libc, ecc.
+                    )
+                } else {
+                    linkerOpts(
+                        "-L${libDir}",
+                        "-lfmilib_shared",
+                        "-Wl,-rpath,${libDir}"
+                    )
+                }
             }
             staticLib()
         }
     }
 
     // Override linker per Linux — separato da nativeSetup
-    linuxX64 {
-        compilations.all {
-            compileTaskProvider.configure {
-                compilerOptions {
-                    val sysRoot = "/"
-                    val overriddenProperties = listOf(
-                        "targetSysRoot.linux_x64=$sysRoot",
-                        "libGcc.linux_x64=$libGccPath"
-                    ).joinToString(";")
-
-                    freeCompilerArgs.add("-Xoverride-konan-properties=$overriddenProperties")
-                }
-            }
-        }
-    }
+//    linuxX64 {
+//        compilations.all {
+//            compileTaskProvider.configure {
+//                compilerOptions {
+//                    val sysRoot = "/"
+//                    val overriddenProperties = listOf(
+//                        "targetSysRoot.linux_x64=$sysRoot",
+//                        "libGcc.linux_x64=$libGccPath"
+//                    ).joinToString(";")
+//
+//                    freeCompilerArgs.add("-Xoverride-konan-properties=$overriddenProperties")
+//                }
+//            }
+//        }
+//    }
 
     sourceSets {
         val commonMain by getting {
