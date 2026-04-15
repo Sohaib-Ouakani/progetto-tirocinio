@@ -46,17 +46,6 @@ kotlin {
         }
         binaries {
             all {
-                //workaround
-                if (targetName == "linuxX64") {
-                    linkerOpts.addAll(listOf(
-                        "-L/usr/lib/x86_64-linux-gnu",
-                        "-lc++",
-                        "--allow-shlib-undefined",
-                        "--unresolved-symbols=ignore-all",
-                        "--warn-unresolved-symbols",
-                    ))
-                }
-                //----------
                 linkerOpts(
                     "-L${libDir}",
                     "-lfmilib_shared",
@@ -64,6 +53,15 @@ kotlin {
                 )
             }
             staticLib()
+        }
+    }
+
+    // Override linker per Linux — separato da nativeSetup
+    linuxX64 {
+        compilations.all {
+            compilerOptions.configure {
+                freeCompilerArgs.add("-Xoverride-konan-properties=linker.linux_x64=/usr/bin/ld")
+            }
         }
     }
 
