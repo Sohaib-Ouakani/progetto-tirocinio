@@ -41,6 +41,9 @@ kotlin {
                 implementation("io.ktor:ktor-client-content-negotiation:3.0.3")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.3")
 
+                implementation("io.github.vinceglb:filekit-core:0.13.0")
+                implementation("io.github.vinceglb:filekit-dialogs-compose:0.13.0")
+                implementation("io.github.vinceglb:filekit-dialogs-compose:0.13.0")
             }
         }
         commonTest.dependencies {
