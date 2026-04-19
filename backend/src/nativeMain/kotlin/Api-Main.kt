@@ -1,6 +1,5 @@
 import configuration.configureCors
 import configuration.configureRouting
-import configuration.configureSerialization
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 
@@ -9,7 +8,7 @@ fun main(args: Array<String>) {
 
     embeddedServer(CIO, port = 8080) {
         configureCors()
-        configureSerialization()
+        //configureSerialization()
         configureRouting(baseDir)
     }.start(wait = true)
 }

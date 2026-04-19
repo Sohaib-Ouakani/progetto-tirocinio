@@ -18,6 +18,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.example.fmi_client.client.fetchInfo
+import com.example.fmi_client.client.uploadFile
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
@@ -38,7 +39,16 @@ class HomeScreen() : Screen{
             type = FileKitType.File()
         ) {
             file ->
-            file?.let { println("File Name: ${file.name}") }
+            file?.let {
+                println("File Name: ${file.name}")
+                scope.launch {
+                    try {
+                        uploadFile(it)
+                    } catch (e: Exception) {
+                        println("Error uploading: ${e.message}")
+                    }
+                }
+            }
         }
 
         Column(

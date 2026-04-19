@@ -9,6 +9,10 @@ fun Application.configureCors() {
         anyHost()
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)
+        allowMethod(HttpMethod.Options)
         allowHeader(HttpHeaders.ContentType)
+        allowHeader(HttpHeaders.ContentDisposition)  // ← ADD THIS
+        allowNonSimpleContentTypes = true
+        allowCredentials = true
     }
 }
