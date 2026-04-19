@@ -5,10 +5,13 @@ import io.ktor.server.application.hooks.MonitoringEvent
 import io.ktor.server.routing.*
 import io.ktor.server.response.*
 import fmu.Fmu
+import kotlinx.io.files.Path
 
 fun Application.configureRouting(baseDir: String) {
-    val fmuPath = "$baseDir/resources/models/BouncingBall.fmu"
-    val extractedPath = "$baseDir/resources/extracted"
+    //val fmuPath = "$baseDir/resources/models/BouncingBall.fmu"
+    val fmuPath = Path("$baseDir/resources/models/BouncingBall.fmu")
+    val extractedDirPath = Path("$baseDir/resources/extracted")
+    //val extractedPath = "$baseDir/resources/extracted"
 
     var fmu: Fmu? = null
 
@@ -31,7 +34,7 @@ fun Application.configureRouting(baseDir: String) {
         route("/fmi") {
             get("/init") {
                 try {
-                fmu = Fmu(fmuPath, extractedPath)
+                fmu = Fmu(fmuPath.toString(), extractedDirPath.toString())
                 } catch (e: Exception) {
                     call.respondText("Error initializing FMU: ${e.message}")
                     return@get
