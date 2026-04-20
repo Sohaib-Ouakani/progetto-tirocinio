@@ -33,6 +33,7 @@ class HomeScreen() : Screen{
         val scope = rememberCoroutineScope()
         val navigator = LocalNavigator.currentOrThrow
         var info by remember { mutableStateOf<JsonObject?>(null) }
+        var fileName by remember { mutableStateOf<String?>(null) }
 
         val launcher = rememberFilePickerLauncher (
             mode = FileKitMode.Single,
@@ -40,6 +41,7 @@ class HomeScreen() : Screen{
         ) {
             file ->
             file?.let {
+                fileName = file.name
                 println("File Name: ${file.name}")
                 scope.launch {
                     try {
@@ -61,7 +63,7 @@ class HomeScreen() : Screen{
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text("To view info about the Bouncing Ball Fmu click below")
+                    Text("To view info about the fmu click below")
                     Button(onClick = {
                         scope.launch {
                             try {
