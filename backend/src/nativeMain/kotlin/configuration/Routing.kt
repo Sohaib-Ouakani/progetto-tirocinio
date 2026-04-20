@@ -22,9 +22,12 @@ import kotlinx.io.readByteArray
 fun Application.configureRouting(baseDir: String) {
     //val fmuPath = "$baseDir/resources/models/BouncingBall.fmu"
     val uploadDir = Path("$baseDir/resources/models/")
-    val fmuPath = Path("$baseDir/resources/models/BouncingBall.fmu")
+    var fmuPath: Path? = null
     val extractedDirPath = Path("$baseDir/resources/extracted")
     //val extractedPath = "$baseDir/resources/extracted"
+    fun findCurrentFmu(): Path? =
+        SystemFileSystem.list(uploadDir)
+            .firstOrNull { it.name.endsWith(".fmu", ignoreCase = true) }
 
     var fmu: Fmu? = null
 
@@ -45,9 +48,16 @@ fun Application.configureRouting(baseDir: String) {
                 install(ContentNegotiation) { json() }
                 get {
                     try {
+                        if(fmuPath == null) {
+                            return@get call.respondText("Error upload FMU first", status = HttpStatusCode.BadRequest)
+                        }
+                        fmu?.close() // Close previous FMU if it exists
                         fmu = Fmu(fmuPath.toString(), extractedDirPath.toString())
                     } catch (e: Exception) {
-                        call.respondText("Error initializing FMU: ${e.message}")
+                        call.respondText(
+                            "Error initializing FMU: ${e.message}",
+                            status = HttpStatusCode.InternalServerError
+                        )
                         return@get
                     }
                     call.respondText("to view info about the fmu type /fmi/info")
@@ -57,7 +67,7 @@ fun Application.configureRouting(baseDir: String) {
             route("/info") {
                 install(ContentNegotiation) { json() }
                 get {
-                    val currentFmu = fmu ?: return@get call.respondText("please initiate...")
+                    val currentFmu = fmu ?: return@get call.respondText("please initiate...", status = HttpStatusCode.BadRequest)
                     try {
                         val result = currentFmu.fmuInfo
                         call.respond(result)
@@ -73,12 +83,20 @@ fun Application.configureRouting(baseDir: String) {
                     ?.let { ContentDisposition.parse(it).parameter(ContentDisposition.Parameters.FileName) }
                     ?: "uploaded_file"
                 val safeName = fileName.replace(Regex("[/\\\\:*?\"<>|]"), "_")
+
+                // Delete all existing .fmu files before saving the new one
+                SystemFileSystem.list(uploadDir)
+                    .filter { it.name.endsWith(".fmu", ignoreCase = true) }
+                    .forEach { SystemFileSystem.delete(it) }
+
                 val filePath = Path(uploadDir, safeName)
 
                 val channel: ByteReadChannel = call.receiveChannel()
                 val bytes = channel.readRemaining().readByteArray()
 
                 SystemFileSystem.sink(filePath).buffered().use { it.write(bytes) }
+
+                fmuPath = findCurrentFmu()
 
                 call.respondText("File '$safeName' salvato.", status = HttpStatusCode.OK)
             }
