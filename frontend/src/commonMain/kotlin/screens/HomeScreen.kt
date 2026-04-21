@@ -18,6 +18,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.example.fmi_client.client.fetchInfo
+import com.example.fmi_client.client.uploadFile
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
@@ -32,13 +33,24 @@ class HomeScreen() : Screen{
         val scope = rememberCoroutineScope()
         val navigator = LocalNavigator.currentOrThrow
         var info by remember { mutableStateOf<JsonObject?>(null) }
+        var fileName by remember { mutableStateOf<String?>(null) }
 
         val launcher = rememberFilePickerLauncher (
             mode = FileKitMode.Single,
             type = FileKitType.File()
         ) {
             file ->
-            file?.let { println("File Name: ${file.name}") }
+            file?.let {
+                fileName = file.name
+                println("File Name: ${file.name}")
+                scope.launch {
+                    try {
+                        uploadFile(it)
+                    } catch (e: Exception) {
+                        println("Error uploading: ${e.message}")
+                    }
+                }
+            }
         }
 
         Column(
@@ -51,7 +63,7 @@ class HomeScreen() : Screen{
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text("To view info about the Bouncing Ball Fmu click below")
+                    Text("To view info about the fmu click below")
                     Button(onClick = {
                         scope.launch {
                             try {
