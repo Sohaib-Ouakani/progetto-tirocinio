@@ -9,3 +9,6 @@ kotlin-js-store
 *.hprof
 local.properties
 .Ds_Store
+backend/resources/extracted/
+backend/resources/models
+digest.txt

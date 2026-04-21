@@ -18,6 +18,10 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.example.fmi_client.client.fetchInfo
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.name
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonObject
 
@@ -28,6 +32,14 @@ class HomeScreen() : Screen{
         val scope = rememberCoroutineScope()
         val navigator = LocalNavigator.currentOrThrow
         var info by remember { mutableStateOf<JsonObject?>(null) }
+
+        val launcher = rememberFilePickerLauncher (
+            mode = FileKitMode.Single,
+            type = FileKitType.File()
+        ) {
+            file ->
+            file?.let { println("File Name: ${file.name}") }
+        }
 
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -53,6 +65,13 @@ class HomeScreen() : Screen{
 
                     }) {
                         Text("Click me!")
+                    }
+
+                    Text("To upload a new FMI click below")
+                    Button(onClick = {
+                        launcher.launch()
+                    }) {
+                        Text("Upload")
                     }
                 }
             }
