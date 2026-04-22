@@ -32,7 +32,7 @@ class NativeFmiWrapper(val path: String, val resources: String) : AutoCloseable 
 
     init {
         var fmuFile = FMU_PATH
-        if (Platform.osFamily != OsFamily.WINDOWS) {
+        if (Platform.osFamily != OsFamily.MACOSX) {
             println("Running on non-Windows OS, recompiling FMU")
             val recompiler = FmuRecompiler()
             recompiler.recompile(path, fmuFile)
