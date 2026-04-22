@@ -77,6 +77,9 @@ jobs:
       - name: Start backend and health check
         shell: pwsh
         run: |
+          $fmilibBinDir = "./fmilib/build/fmilib-install/windows-amd64/bin"
+          $env:PATH = "$fmilibBinDir;$env:PATH"
+          
           New-Item -ItemType Directory -Force -Path resources/models, resources/extracted
           $proc = Start-Process -FilePath "./backend/build/bin/mingwX64/releaseExecutable/backend.exe" `
             -ArgumentList "." -PassThru
