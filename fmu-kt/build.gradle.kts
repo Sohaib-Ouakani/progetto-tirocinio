@@ -23,12 +23,6 @@ val platformDirName = mapOf(
     "mingwX64"    to "windows-amd64"
 )
 
-// Funzione che restituisce sia lib (per le .dll.a) che bin (per le .dll)
-fun getNativeBinDirs(targetName: String): List<File> {
-    val platformDir = fmilibInstallDir.resolve(platformDirName[targetName] ?: error("Unknown target $targetName"))
-    return listOf(platformDir.resolve("lib"), platformDir.resolve("bin"))
-}
-
 val fmilibInstallDir = project(":fmilib").layout.buildDirectory.dir("fmilib-install").get().asFile
 
 kotlin {
@@ -108,6 +102,12 @@ kotlin {
 //    watchosSimulatorArm64(nativeSetup)
 //    tvosArm64(nativeSetup)
 //    tvosSimulatorArm64(nativeSetup)
+}
+
+// Funzione che restituisce sia lib (per le .dll.a) che bin (per le .dll)
+fun getNativeBinDirs(targetName: String): List<File> {
+    val platformDir = fmilibInstallDir.resolve(platformDirName[targetName] ?: error("Unknown target $targetName"))
+    return listOf(platformDir.resolve("lib"), platformDir.resolve("bin"))
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest>().configureEach {
