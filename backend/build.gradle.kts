@@ -53,9 +53,9 @@ kotlin {
                     args(projectDir.absolutePath)
                 }
                 linkerOpts(
-                    "-L${rootProject.projectDir}/fmu-kt/libs/fmilib/lib",
+                    "-L${libDir}",
                     "-lfmilib_shared",
-                    "-Wl,-rpath,${rootProject.projectDir}/fmu-kt/libs/fmilib/lib"
+                    "-Wl,-rpath,${libDir}"
                 )
             }
         }
