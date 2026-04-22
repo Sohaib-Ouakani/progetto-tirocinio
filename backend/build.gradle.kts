@@ -52,11 +52,23 @@ kotlin {
                 runTaskProvider?.configure {
                     args(projectDir.absolutePath)
                 }
+                if (targetName == "linuxX64") {
+                    linkerOpts(
+                        "-L${libDir}",
+                        "-lfmilib_shared",
+                        "-Wl,-rpath,${libDir}",
+                        "-L/usr/lib/x86_64-linux-gnu",
+                        "-Wl,--allow-shlib-undefined",
+                        "-Wl,--unresolved-symbols=ignore-all",
+                        "-Wl,--warn-unresolved-symbols"
+                    )
+                } else {
                 linkerOpts(
                     "-L${libDir}",
                     "-lfmilib_shared",
                     "-Wl,-rpath,${libDir}"
                 )
+            }
             }
         }
     }
