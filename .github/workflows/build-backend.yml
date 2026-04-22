@@ -1,0 +1,88 @@
+name: Build and Test Backend
+
+on:
+  push:
+    branches: [ci-test]
+  workflow_dispatch:
+
+jobs:
+  test-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build FMIlib
+        run: ./gradlew cmakeBuild
+
+      - name: Build backend binary
+        run: ./gradlew :backend:linuxX64Binaries
+
+      - name: Start backend and health check
+        run: |
+          mkdir -p resources/models resources/extracted
+          ./backend/build/bin/linuxX64/releaseExecutable/backend.kexe . &
+          sleep 10
+          curl --fail http://localhost:8080/health
+
+  test-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build FMIlib
+        run: ./gradlew cmakeBuild
+
+      - name: Build backend binary
+        run: ./gradlew :backend:macosArm64Binaries
+
+      - name: Start backend and health check
+        run: |
+          mkdir -p resources/models resources/extracted
+          ./backend/build/bin/macosArm64/releaseExecutable/backend.kexe . &
+          sleep 10
+          curl --fail http://localhost:8080/health
+
+  test-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build FMIlib
+        run: ./gradlew cmakeBuild
+
+      - name: Build backend binary
+        run: ./gradlew :backend:mingwX64Binaries
+
+      - name: Start backend and health check
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path resources/models, resources/extracted
+          $proc = Start-Process -FilePath "./backend/build/bin/mingwX64/releaseExecutable/backend.exe" `
+            -ArgumentList "." -PassThru
+          Start-Sleep -Seconds 15
+          try {
+            curl.exe --fail http://localhost:8080/health
+          } finally {
+            $proc | Stop-Process
+          }
