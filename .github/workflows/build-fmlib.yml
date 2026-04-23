@@ -26,7 +26,7 @@ jobs:
 
       - name: Build
         run: |
-          ./gradlew cmakeBuild
+          ./gradlew build
 
       - name: Test
         run: |
@@ -53,7 +53,7 @@ jobs:
 
       - name: Build and test
         run: |
-          ./gradlew cmakeBuild
+          ./gradlew build
           ./gradlew :fmu-kt:macosArm64Test
 
       - name: Upload install dir
@@ -77,7 +77,7 @@ jobs:
 
       - name: Build
         run: |
-          ./gradlew cmakeBuild
+          ./gradlew build
           
       - name: List fmilib windows outputs
         run: Get-ChildItem -Recurse "${{ github.workspace }}\fmilib\build\fmilib-install\windows-amd64"
