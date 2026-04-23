@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.gradle.internal.os.OperatingSystem
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -74,27 +75,15 @@ kotlin {
     }
 
     applyDefaultHierarchyTemplate()
-    /*
-     * Linux 64
-     */
-    linuxX64(nativeSetup)
-//    linuxArm64(nativeSetup)
-    /*
-     * Win 64
-     */
-    mingwX64(nativeSetup)
-    /*
-     * Apple OSs
-     */
-//    macosX64(nativeSetup)
-    macosArm64(nativeSetup)
-//    iosArm64(nativeSetup)
-//    iosSimulatorArm64(nativeSetup)
-//    watchosArm32(nativeSetup)
-//    watchosArm64(nativeSetup)
-//    watchosSimulatorArm64(nativeSetup)
-//    tvosArm64(nativeSetup)
-//    tvosSimulatorArm64(nativeSetup)
+    applyDefaultHierarchyTemplate()
+
+    val os = OperatingSystem.current()
+    when {
+        os.isMacOsX  -> macosArm64(nativeSetup)
+        os.isLinux   -> linuxX64(nativeSetup)
+        os.isWindows -> mingwX64(nativeSetup)
+        else -> error("Unsupported OS: $os")
+    }
 
     targets.all {
         compilations.all {

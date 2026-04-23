@@ -19,8 +19,5 @@ subprojects {
     }.configureEach {
         enabled = false
     }
-    val buildFullStack by tasks.registering {
-        tasks.named("cmakeBuild")
-    }
 }
 

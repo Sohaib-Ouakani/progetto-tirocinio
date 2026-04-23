@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
+import org.gradle.internal.os.OperatingSystem
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -92,18 +93,14 @@ kotlin {
     }
 
     applyDefaultHierarchyTemplate()
-    linuxX64(nativeSetup)
-//    linuxArm64(nativeSetup)
-    mingwX64(nativeSetup)
-//    macosX64(nativeSetup)
-    macosArm64(nativeSetup)
-//    iosArm64(nativeSetup)
-//    iosSimulatorArm64(nativeSetup)
-//    watchosArm32(nativeSetup)
-//    watchosArm64(nativeSetup)
-//    watchosSimulatorArm64(nativeSetup)
-//    tvosArm64(nativeSetup)
-//    tvosSimulatorArm64(nativeSetup)
+
+    val os = OperatingSystem.current()
+    when {
+        os.isMacOsX  -> macosArm64(nativeSetup)
+        os.isLinux   -> linuxX64(nativeSetup)
+        os.isWindows -> mingwX64(nativeSetup)
+        else -> error("Unsupported OS: $os")
+    }
 }
 
 // Funzione che restituisce sia lib (per le .dll.a) che bin (per le .dll)
