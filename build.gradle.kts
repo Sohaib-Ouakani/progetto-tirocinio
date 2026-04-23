@@ -9,6 +9,8 @@ plugins {
     alias(libs.plugins.gradle.cmake) apply false
     alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.kotlinxSerialization) apply false
+    id("com.dorongold.task-tree") version "4.0.1"
+    `lifecycle-base`
 }
 
 subprojects {
@@ -17,4 +19,8 @@ subprojects {
     }.configureEach {
         enabled = false
     }
+    val buildFullStack by tasks.registering {
+        tasks.named("cmakeBuild")
+    }
 }
+

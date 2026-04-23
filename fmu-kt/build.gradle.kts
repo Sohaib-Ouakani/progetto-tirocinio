@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -13,9 +14,10 @@ repositories {
 }
 
 val cLibrary by configurations.creating
+val fmilib = project(":fmilib")
 
 dependencies {
-    cLibrary(project(":fmilib"))
+    cLibrary(fmilib)
 }
 val platformDirName = mapOf(
     "macosArm64"  to "mac-aarch64",
@@ -110,7 +112,7 @@ fun getNativeBinDirs(targetName: String): List<File> {
     return listOf(platformDir.resolve("lib"), platformDir.resolve("bin"))
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest>().configureEach {
+tasks.withType<KotlinNativeTest>().configureEach {
     if (name == "mingwX64Test") {
         val binDirs = getNativeBinDirs("mingwX64")
         doFirst {
@@ -121,4 +123,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
             logger.lifecycle("PATH per mingwX64Test: $newPath")
         }
     }
+}
+
+tasks.matching { it.name.startsWith("cinterop") }.configureEach {
+    dependsOn(fmilib.tasks.build)
 }
