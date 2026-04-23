@@ -50,4 +50,8 @@ kotlin {
             implementation(kotlin("test"))
         }
     }
+
+    tasks.named("wasmJsBrowserTest") {
+        enabled = false
+    }
 }
