@@ -18,11 +18,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build FMIlib
-        run: ./gradlew cmakeBuild
-
-      - name: Build backend binary
-        run: ./gradlew :backend:linuxX64Binaries
+      - name: Build
+        run: ./gradlew build
 
       - name: Start backend and health check
         run: |
@@ -43,11 +40,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build FMIlib
-        run: ./gradlew cmakeBuild
-
-      - name: Build backend binary
-        run: ./gradlew :backend:macosArm64Binaries
+      - name: Build
+        run: ./gradlew build
 
       - name: Start backend and health check
         run: |
@@ -68,11 +62,8 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build FMIlib
-        run: ./gradlew cmakeBuild
-
-      - name: Build backend binary
-        run: ./gradlew :backend:mingwX64Binaries
+      - name: Build
+        run: ./gradlew build
 
       - name: Start backend and health check
         shell: pwsh
