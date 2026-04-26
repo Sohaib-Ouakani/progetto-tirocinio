@@ -29,12 +29,30 @@ fun Application.configureRouting(baseDir: String) {
         SystemFileSystem.list(uploadDir)
             .firstOrNull { it.name.endsWith(".fmu", ignoreCase = true) }
 
+    fun deleteRecursively(path: Path) {
+        if (SystemFileSystem.metadataOrNull(path)?.isDirectory == true) {
+            SystemFileSystem.list(path).forEach { deleteRecursively(it) }
+        }
+        SystemFileSystem.delete(path)
+    }
+
     fun resetUploadDirectory(): Unit =
         SystemFileSystem.list(uploadDir)
             .filter { it.name.endsWith(".fmu", ignoreCase = true) }
             .forEach { SystemFileSystem.delete(it) }
 
-    resetUploadDirectory()
+    fun resetExtractedDirectory(): Unit =
+        SystemFileSystem.list(extractedDirPath)
+            .filter { SystemFileSystem.metadataOrNull(it)?.isDirectory == true || it.name.endsWith(".xml", ignoreCase = true) }
+            .forEach { deleteRecursively(it) }
+
+    fun resetResourcesDirectory() {
+        resetExtractedDirectory()
+        resetUploadDirectory()
+    }
+
+
+    resetResourcesDirectory()
 
     install(createApplicationPlugin("FmuCleanup") {
         on(MonitoringEvent(ApplicationStopped)) {
@@ -90,7 +108,7 @@ fun Application.configureRouting(baseDir: String) {
                     ?: "uploaded_file"
                 val safeName = fileName.replace(Regex("[/\\\\:*?\"<>|]"), "_")
 
-                resetUploadDirectory()
+                resetResourcesDirectory()
 
                 val filePath = Path(uploadDir, safeName)
 
