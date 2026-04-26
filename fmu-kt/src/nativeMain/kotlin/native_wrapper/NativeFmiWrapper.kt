@@ -15,7 +15,7 @@ import native_wrapper.simulation.config.SimulationConfig
 import native_wrapper.simulation.results.SimulationResult
 import utility.FmuRecompiler
 
-enum class DLL_STATUS {
+enum class DLLSTATUS {
     OK, ERROR
 }
 
@@ -24,7 +24,7 @@ class NativeFmiWrapper(val path: String, val resources: String, val baseDir: Str
     var context: CPointer<fmi_import_context_t>? = fmi_import_allocate_context(null)
     var fmi: CPointer<cnames.structs.fmi2_import_t>? = null
     var fmuInfo: FmuInfo
-    val dllStatus: DLL_STATUS
+    val dllStatus: DLLSTATUS
     var experimentInstance: Int? = null
     var simulationConfig: SimulationConfig? = null
 
@@ -48,7 +48,7 @@ class NativeFmiWrapper(val path: String, val resources: String, val baseDir: Str
         fmuInfo = getInfo()
 
         val dllResult = fmi2_import_create_dllfmu(fmi, fmi_version_2_0_enu, null)
-        dllStatus = if (dllResult == 0) DLL_STATUS.OK else DLL_STATUS.ERROR
+        dllStatus = if (dllResult == 0) DLLSTATUS.OK else DLLSTATUS.ERROR
     }
 
     private fun getInfo(): FmuInfo {

@@ -1,6 +1,6 @@
 package fmu
 
-import native_wrapper.DLL_STATUS
+import native_wrapper.DLLSTATUS
 import native_wrapper.NativeFmiWrapper
 import native_wrapper.fmu_data.info.FmuInfo
 import native_wrapper.simulation.config.SimulationConfig
@@ -12,7 +12,7 @@ class Fmu(val fmuPath: String, val resourcesPath: String, val baseDir: String) :
     private var fmiClosed = false
 
     init {
-        if(fmi.dllStatus != DLL_STATUS.OK) {
+        if(fmi.dllStatus != DLLSTATUS.OK) {
             throw IllegalArgumentException("Error when loading DLL")
         }
     }

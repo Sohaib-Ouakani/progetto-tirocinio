@@ -1,12 +1,7 @@
-import kotlin.experimental.ExperimentalNativeApi
-import native_wrapper.NativeFmiWrapper
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 import kotlinx.cinterop.ExperimentalForeignApi
 import libfmi.fmi_version_2_0_enu
-import native_wrapper.DLL_STATUS
 
 class NativeFmiWrapperTest {
 
