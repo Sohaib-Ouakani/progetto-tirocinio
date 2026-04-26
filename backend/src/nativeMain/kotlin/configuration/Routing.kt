@@ -20,6 +20,8 @@ import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
 
 fun Application.configureRouting(baseDir: String) {
+    val baseDir = SystemFileSystem.resolve(Path(baseDir))
+
     val uploadDir = Path("$baseDir/resources/models/")
     val extractedDirPath = Path("$baseDir/resources/extracted")
     var fmuPath: Path? = null
@@ -75,7 +77,7 @@ fun Application.configureRouting(baseDir: String) {
                         }
 
                         fmu?.close() // Close previous FMU if it exists
-                        fmu = Fmu(fmuPath.toString(), extractedDirPath.toString(), baseDir)
+                        fmu = Fmu(fmuPath.toString(), extractedDirPath.toString(), baseDir.toString())
                     } catch (e: Exception) {
                         call.respondText(
                             "Error initializing FMU: ${e.message}",
