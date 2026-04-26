@@ -19,10 +19,8 @@ enum class DLL_STATUS {
     OK, ERROR
 }
 
-const val FMU_PATH = "./resources/models/result.fmu"
-
 @OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
-class NativeFmiWrapper(val path: String, val resources: String) : AutoCloseable {
+class NativeFmiWrapper(val path: String, val resources: String, val baseDir: String) : AutoCloseable {
     var context: CPointer<fmi_import_context_t>? = fmi_import_allocate_context(null)
     var fmi: CPointer<cnames.structs.fmi2_import_t>? = null
     var fmuInfo: FmuInfo
@@ -31,7 +29,8 @@ class NativeFmiWrapper(val path: String, val resources: String) : AutoCloseable 
     var simulationConfig: SimulationConfig? = null
 
     init {
-        var fmuFile = FMU_PATH
+        val fmuOutputPath = "$baseDir/resources/models/result.fmu"
+        var fmuFile = fmuOutputPath
         if (Platform.osFamily == OsFamily.MACOSX) {
             println("Running on  MacOS, recompiling FMU")
             val recompiler = FmuRecompiler()

@@ -57,7 +57,7 @@ fun Application.configureRouting(baseDir: String) {
                         }
 
                         fmu?.close() // Close previous FMU if it exists
-                        fmu = Fmu(fmuPath.toString(), extractedDirPath.toString())
+                        fmu = Fmu(fmuPath.toString(), extractedDirPath.toString(), baseDir)
                     } catch (e: Exception) {
                         call.respondText(
                             "Error initializing FMU: ${e.message}",

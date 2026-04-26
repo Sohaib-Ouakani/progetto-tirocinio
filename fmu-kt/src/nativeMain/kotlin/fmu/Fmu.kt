@@ -6,8 +6,8 @@ import native_wrapper.fmu_data.info.FmuInfo
 import native_wrapper.simulation.config.SimulationConfig
 import native_wrapper.simulation.results.SimulationResult
 
-class Fmu(val fmuPath: String, val resourcesPath: String) : AutoCloseable {
-    private val fmi: NativeFmiWrapper = NativeFmiWrapper(fmuPath, resourcesPath)
+class Fmu(val fmuPath: String, val resourcesPath: String, val baseDir: String) : AutoCloseable {
+    private val fmi: NativeFmiWrapper = NativeFmiWrapper(fmuPath, resourcesPath, baseDir)
     val fmuInfo: FmuInfo = fmi.fmuInfo
     private var fmiClosed = false
 
