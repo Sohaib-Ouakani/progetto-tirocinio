@@ -23,7 +23,6 @@ jobs:
 
       - name: Start backend and health check
         run: |
-          mkdir -p resources/models resources/extracted
           ./backend/build/bin/linuxX64/releaseExecutable/backend.kexe . &
           sleep 10
           curl --fail http://localhost:8080/health
@@ -45,7 +44,6 @@ jobs:
 
       - name: Start backend and health check
         run: |
-          mkdir -p resources/models resources/extracted
           ./backend/build/bin/macosArm64/releaseExecutable/backend.kexe . &
           sleep 10
           curl --fail http://localhost:8080/health
@@ -71,7 +69,6 @@ jobs:
           $fmilibBinDir = "./fmilib/build/fmilib-install/windows-amd64/bin"
           $env:PATH = "$fmilibBinDir;$env:PATH"
           
-          New-Item -ItemType Directory -Force -Path resources/models, resources/extracted
           $proc = Start-Process -FilePath "./backend/build/bin/mingwX64/releaseExecutable/backend.exe" `
             -ArgumentList "." -PassThru
           Start-Sleep -Seconds 15
