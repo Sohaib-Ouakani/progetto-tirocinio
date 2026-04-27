@@ -96,8 +96,8 @@ kotlin {
 
     val os = OperatingSystem.current()
     when {
-        os.isMacOsX  -> macosArm64(nativeSetup)
-        os.isLinux   -> linuxX64(nativeSetup)
+        os.isMacOsX -> macosArm64(nativeSetup)
+        os.isLinux -> linuxX64(nativeSetup)
         os.isWindows -> mingwX64(nativeSetup)
         else -> error("Unsupported OS: $os")
     }
