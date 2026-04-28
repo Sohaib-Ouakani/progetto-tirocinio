@@ -14,6 +14,7 @@ plugins {
 }
 
 subprojects {
+    // TODO: is this needed?
     tasks.matching {
         it.name.contains("iosSimulatorArm64Test")
     }.configureEach {
