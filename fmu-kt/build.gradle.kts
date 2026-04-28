@@ -29,6 +29,9 @@ val platformDirName = mapOf(
 val fmilibInstallDir = project(":fmilib").layout.buildDirectory.dir("fmilib-install").get().asFile
 
 kotlin {
+    compilerOptions {
+        allWarningsAsErrors = true
+    }
     val nativeSetup: KotlinNativeTarget.() -> Unit = {
         val platformDir = fmilibInstallDir
             .resolve(platformDirName[targetName] ?: error("Platform $targetName sconosciuta"))
