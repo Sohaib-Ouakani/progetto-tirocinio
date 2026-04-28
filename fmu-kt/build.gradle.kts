@@ -104,6 +104,16 @@ kotlin {
         os.isWindows -> mingwX64(nativeSetup)
         else -> error("Unsupported OS: $os")
     }
+
+    targets.configureEach {
+        compilations.configureEach {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
+        }
+    }
 }
 
 // Funzione che restituisce sia lib (per le .dll.a) che bin (per le .dll)

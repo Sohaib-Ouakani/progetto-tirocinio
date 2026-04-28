@@ -57,4 +57,14 @@ kotlin {
     tasks.named("wasmJsBrowserTest") {
         enabled = false
     }
+
+    targets.configureEach {
+        compilations.configureEach {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
+        }
+    }
 }
