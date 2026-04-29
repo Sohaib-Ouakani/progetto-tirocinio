@@ -13,7 +13,7 @@ import libfmi.*
 import native_wrapper.fmu_data.info.FmuInfo
 import native_wrapper.simulation.config.SimulationConfig
 import native_wrapper.simulation.results.SimulationResult
-import utility.FmuRecompiler
+import recompiler.FmuRecompiler
 
 enum class DLLSTATUS {
     OK, ERROR
