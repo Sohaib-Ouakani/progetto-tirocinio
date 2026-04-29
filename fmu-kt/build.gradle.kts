@@ -29,9 +29,9 @@ val platformDirName = mapOf(
 val fmilibInstallDir = project(":fmilib").layout.buildDirectory.dir("fmilib-install").get().asFile
 
 kotlin {
-//    compilerOptions {
-//        allWarningsAsErrors = true
-//    }
+    compilerOptions {
+        allWarningsAsErrors = true
+    }
     val nativeSetup: KotlinNativeTarget.() -> Unit = {
         val platformDir = fmilibInstallDir
             .resolve(platformDirName[targetName] ?: error("Platform $targetName sconosciuta"))
@@ -87,14 +87,6 @@ kotlin {
 //        }
 //    }
 
-    sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation(libs.kotlinxSerializationJson)
-            }
-        }
-    }
-
     applyDefaultHierarchyTemplate()
 
     val os = OperatingSystem.current()
@@ -103,6 +95,21 @@ kotlin {
         os.isLinux -> linuxX64(nativeSetup)
         os.isWindows -> mingwX64(nativeSetup)
         else -> error("Unsupported OS: $os")
+    }
+
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(libs.kotlinxSerializationJson)
+            }
+        }
+
+        val macosArm64Main by getting {
+            dependencies {
+                implementation(libs.ksoup.core)
+                implementation(libs.ksoup.kotlinxIo)
+            }
+        }
     }
 
     targets.configureEach {
