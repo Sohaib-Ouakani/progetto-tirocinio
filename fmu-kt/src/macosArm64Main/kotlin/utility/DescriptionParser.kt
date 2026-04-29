@@ -2,7 +2,6 @@ package utility
 
 import com.fleeksoft.ksoup.Ksoup
 import com.fleeksoft.ksoup.nodes.Document
-import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
 
 class DescriptionParser(xmlDescription: String) {
