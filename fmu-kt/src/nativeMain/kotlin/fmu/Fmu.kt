@@ -1,10 +1,10 @@
 package fmu
 
-import native_wrapper.DLLSTATUS
-import native_wrapper.NativeFmiWrapper
-import native_wrapper.fmu_data.info.FmuInfo
-import native_wrapper.simulation.config.SimulationConfig
-import native_wrapper.simulation.results.SimulationResult
+import wrapper.DLLSTATUS
+import wrapper.NativeFmiWrapper
+import wrapper.fmuData.info.FmuInfo
+import wrapper.simulation.config.SimulationConfig
+import wrapper.simulation.results.SimulationResult
 
 class Fmu(val fmuPath: String, val resourcesPath: String, val baseDir: String) : AutoCloseable {
     private val fmi: NativeFmiWrapper = NativeFmiWrapper(fmuPath, resourcesPath, baseDir)

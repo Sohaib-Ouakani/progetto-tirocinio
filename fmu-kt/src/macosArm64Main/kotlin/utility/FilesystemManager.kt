@@ -12,9 +12,10 @@ import platform.posix.fgets
 import platform.posix.fopen
 import platform.posix.fputs
 import platform.posix.getcwd
+const val UNSGN_BUFFER_SIZE = 4096uL
 
 class FilesystemManager {
-    val bufferSize = 4096
+
 
     @OptIn(ExperimentalForeignApi::class)
     fun readFile(fileName: String): String {
@@ -23,8 +24,8 @@ class FilesystemManager {
         val sb = StringBuilder()
 
         memScoped {
-            val buff = allocArray<ByteVar>(bufferSize)
-            while (fgets(buff, bufferSize, file) != null) {
+            val buff = allocArray<ByteVar>(BUFFER_SIZE)
+            while (fgets(buff, BUFFER_SIZE, file) != null) {
                 sb.append(buff.toKString())
             }
         }
@@ -44,8 +45,8 @@ class FilesystemManager {
     fun pathAbsolute(path: String): String {
         if (path.startsWith("/")) return path
         return memScoped {
-            val buf = allocArray<ByteVar>(4096)
-            val cwd = getcwd(buf, 4096u)?.toKString() ?: "."
+            val buf = allocArray<ByteVar>(BUFFER_SIZE)
+            val cwd = getcwd(buf, UNSGN_BUFFER_SIZE)?.toKString() ?: "."
             "$cwd/$path"
         }
     }

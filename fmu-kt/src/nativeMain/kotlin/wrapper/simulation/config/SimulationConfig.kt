@@ -1,4 +1,4 @@
-package native_wrapper.simulation.config
+package wrapper.simulation.config
 
 data class SimulationConfig(
     val startTime: Double = 0.0,

@@ -1,6 +1,6 @@
-package native_wrapper.simulation.results
+package wrapper.simulation.results
 
-import native_wrapper.simulation.config.SimulationConfig
+import wrapper.simulation.config.SimulationConfig
 
 data class SimulationResult (
     val timestamps: List<Double>,

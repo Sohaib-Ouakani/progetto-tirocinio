@@ -1,4 +1,4 @@
-package native_wrapper.fmu_data.info
+package wrapper.fmuData.info
 
 import kotlinx.serialization.Serializable
 

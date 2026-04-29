@@ -1,4 +1,4 @@
-package native_wrapper
+package wrapper
 
 import kotlin.experimental.ExperimentalNativeApi
 import kotlinx.cinterop.CPointer
@@ -9,10 +9,46 @@ import kotlinx.cinterop.get
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.set
 import kotlinx.cinterop.toKString
-import libfmi.*
-import native_wrapper.fmu_data.info.FmuInfo
-import native_wrapper.simulation.config.SimulationConfig
-import native_wrapper.simulation.results.SimulationResult
+import libfmi.fmi2_fmu_kind_cs
+import libfmi.fmi2_fmu_kind_me
+import libfmi.fmi2_fmu_kind_me_and_cs
+import libfmi.fmi2_fmu_kind_unknown
+import libfmi.fmi2_import_create_dllfmu
+import libfmi.fmi2_import_destroy_dllfmu
+import libfmi.fmi2_import_do_step
+import libfmi.fmi2_import_enter_initialization_mode
+import libfmi.fmi2_import_exit_initialization_mode
+import libfmi.fmi2_import_free
+import libfmi.fmi2_import_free_instance
+import libfmi.fmi2_import_get_author
+import libfmi.fmi2_import_get_default_experiment_start
+import libfmi.fmi2_import_get_default_experiment_step
+import libfmi.fmi2_import_get_default_experiment_stop
+import libfmi.fmi2_import_get_description
+import libfmi.fmi2_import_get_fmu_kind
+import libfmi.fmi2_import_get_model_name
+import libfmi.fmi2_import_get_model_version
+import libfmi.fmi2_import_get_real
+import libfmi.fmi2_import_get_variable
+import libfmi.fmi2_import_get_variable_by_name
+import libfmi.fmi2_import_get_variable_list
+import libfmi.fmi2_import_get_variable_list_size
+import libfmi.fmi2_import_get_variable_name
+import libfmi.fmi2_import_get_variable_vr
+import libfmi.fmi2_import_instantiate
+import libfmi.fmi2_import_parse_xml
+import libfmi.fmi2_import_setup_experiment
+import libfmi.fmi2_import_terminate
+import libfmi.fmi2_type_t
+import libfmi.fmi2_value_reference_tVar
+import libfmi.fmi_import_allocate_context
+import libfmi.fmi_import_context_t
+import libfmi.fmi_import_free_context
+import libfmi.fmi_import_get_fmi_version
+import libfmi.fmi_version_2_0_enu
+import wrapper.fmuData.info.FmuInfo
+import wrapper.simulation.config.SimulationConfig
+import wrapper.simulation.results.SimulationResult
 import recompiler.FmuRecompiler
 
 enum class DLLSTATUS {
@@ -60,10 +96,10 @@ class NativeFmiWrapper(val path: String, val resources: String, val baseDir: Str
             else -> ""
         }
         val varList = fmi2_import_get_variable_list(fmi, 0)
-        val varList_size = fmi2_import_get_variable_list_size(varList)
+        val varlistSize = fmi2_import_get_variable_list_size(varList)
         val varibles = mutableListOf<String>()
 
-        for (i in 0 until varList_size.toInt()) {
+        for (i in 0 until varlistSize.toInt()) {
             val variable = fmi2_import_get_variable(varList, i.toULong())
             val name = fmi2_import_get_variable_name(variable)?.toKString().orEmpty()
             varibles.add(name)
@@ -73,6 +109,7 @@ class NativeFmiWrapper(val path: String, val resources: String, val baseDir: Str
             fmi2_import_get_model_name(fmi)?.toKString(),
             fmi2_import_get_description(fmi)?.toKString(),
             fmi2_import_get_author(fmi)?.toKString(),
+
             fmi2_import_get_model_version(fmi)?.toKString(),
             fmi2_import_get_default_experiment_start(fmi),
             fmi2_import_get_default_experiment_stop(fmi),

@@ -101,11 +101,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(libs.kotlinxSerializationJson)
-            }
-        }
 
-        val macosArm64Main by getting {
-            dependencies {
                 implementation(libs.ksoup.core)
                 implementation(libs.ksoup.kotlinxIo)
             }
