@@ -17,9 +17,9 @@ repositories {
 }
 
 kotlin {
-//    compilerOptions {
-//        allWarningsAsErrors = true
-//    }
+    compilerOptions {
+        allWarningsAsErrors = true
+    }
     wasmJs {
         browser {
             commonWebpackConfig {
