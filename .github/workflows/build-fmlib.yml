@@ -2,7 +2,7 @@ name: Build FMILibrary
 
 on:
   push:
-    branches: [ci-test]
+    branches: [ci-test, main]
   workflow_dispatch:
 
 jobs:
