@@ -121,6 +121,12 @@ kotlin {
             }
         }
     }
+
+    tasks.withType<KotlinNativeTest>().configureEach {
+        testLogging {
+            showStandardStreams = true
+        }
+    }
 }
 
 // Funzione che restituisce sia lib (per le .dll.a) che bin (per le .dll)

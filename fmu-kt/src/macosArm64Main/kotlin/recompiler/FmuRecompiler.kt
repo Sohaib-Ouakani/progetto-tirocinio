@@ -6,59 +6,13 @@ import com.fleeksoft.ksoup.nodes.Element
 import com.fleeksoft.ksoup.parser.Parser
 import platform.posix.F_OK
 import platform.posix.access
+import utility.DescriptionParser
 import utility.FilesystemManager
 import utility.ProcessExecution
 
 actual class FmuRecompiler {
     private val exec = ProcessExecution()
     private val fs = FilesystemManager()
-    private fun xmlAttr(xml: String, attr: String): String =
-        Regex("""$attr="([^"]+)"""").find(xml)?.groupValues?.get(1) ?: ""
-
-    private fun extractSources(xml: String): List<String> {
-        val coSim = Regex("""<CoSimulation\b[^>]*>.*?</CoSimulation>""", RegexOption.DOT_MATCHES_ALL)
-            .find(xml)?.value
-            ?: error("Tag CoSimulation mancante: solo FMU CoSimulation supportati")
-
-        return Regex("""<File\s+name="([^"]+)"""")
-            .findAll(coSim)
-            .map { it.groupValues[1] }
-            .toList()
-            .also { check(it.isNotEmpty()) { "Nessun file sorgente trovato in <SourceFiles>" } }
-    }
-    private fun findModelId(xml: String): String {
-        val doc: Document = Ksoup.parse(xml, parser = Parser.xmlParser())
-
-        val csEl: Element? = doc.selectFirst("CoSimulation")
-        val meEl: Element? = doc.selectFirst("ModelExchange")
-        val csmeEl: Element? = doc.selectFirst("CoSimulationAndModelExchange")
-
-        check( csEl != null || meEl != null || csmeEl != null ) { "Unrecognized FMU kind" }
-
-        val kindElement = doc.selectFirst("CoSimulation, ModelExchange, CoSimulationAndModelExchange")
-            ?: error("No CoSimulation/ModelExchange tag found — invalid modelDescription.xml")
-
-        val modelId = kindElement.attr("modelIdentifier")
-            .also { check(it.isNotBlank()) { "modelIdentifier not found" } }
-        println("KSOUP model identifier: $modelId")
-
-        return modelId
-    }
-
-
-    private fun findSourceFiles(xml: String): List<String> {
-        val doc: Document = Ksoup.parse(xml, parser = Parser.xmlParser())
-
-        val kindElement = doc.selectFirst("CoSimulation, ModelExchange, CoSimulationAndModelExchange")
-            ?: error("No CoSimulation/ModelExchange tag found — invalid modelDescription.xml")
-
-        val sourceFiles = kindElement.select("SourceFiles > File")
-            .map { it.attr("name") }
-            .also { check(it.isNotEmpty()) { "No source files found in <SourceFiles>" } }
-
-        return sourceFiles
-    }
-
     private fun discoverAliasFlags(nm: String, objs: List<String>, modelId: String, fmiPrefix: String): List<String> =
         objs.flatMap { obj ->
             exec.runWithOutput(nm, "--defined-only", obj)
@@ -167,14 +121,15 @@ actual class FmuRecompiler {
             check(exec.run("unzip", "-q", input, "-d", extracted) == 0) { "Extraction failed" }
 
             val xml = fs.readFile("$extracted/modelDescription.xml")
-            val modelId  = findModelId(xml)
+            val parser = DescriptionParser(xml)
+            val modelId  = parser.findModelId()
             val fmiPrefix = "fmi2"
 
             val sourcesDir = "$extracted/sources"
             check(access(sourcesDir, F_OK) == 0) { "No source folder, precompiled FMU" }
             synthesiseFmi2Headers(sourcesDir)
 
-            val sources = findSourceFiles(xml).map { "$sourcesDir/$it" }
+            val sources = parser.findSourceFiles().map { "$sourcesDir/$it" }
 
             val targets = listOf("arm64-apple-macos11", "x86_64-apple-macos10.13")
             val objsByArch = targets.associateWith { target ->
