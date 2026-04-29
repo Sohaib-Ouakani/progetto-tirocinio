@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.gradle.internal.os.OperatingSystem
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -11,6 +12,13 @@ repositories {
     google()
     mavenCentral()
 }
+
+val platformDirName = mapOf(
+    "macosArm64"  to "mac-aarch64",
+    "linuxX64"    to "linux-amd64",
+    "mingwX64"    to "windows-amd64"
+)
+val fmilibInstallDir = project(":fmilib").layout.buildDirectory.dir("fmilib-install").get().asFile
 
 kotlin {
 
@@ -35,43 +43,47 @@ kotlin {
     }
 
     val nativeSetup: KotlinNativeTarget.() -> Unit = {
+        val platformDir = fmilibInstallDir
+            .resolve(platformDirName[targetName] ?: error("Platform $targetName sconosciuta"))
+        val libDir = platformDir.resolve("lib")
+
         binaries {
             executable {
                 entryPoint = "main"
                 runTaskProvider?.configure {
                     args(projectDir.absolutePath)
                 }
+                if (targetName == "linuxX64") {
+                    linkerOpts(
+                        "-L${libDir}",
+                        "-lfmilib_shared",
+                        "-Wl,-rpath,${libDir}",
+                        "-L/usr/lib/x86_64-linux-gnu",
+                        "-Wl,--allow-shlib-undefined",
+                        "-Wl,--unresolved-symbols=ignore-all",
+                        "-Wl,--warn-unresolved-symbols"
+                    )
+                } else {
                 linkerOpts(
-                    "-L${rootProject.projectDir}/fmu-kt/libs/fmilib/lib",
+                    "-L${libDir}",
                     "-lfmilib_shared",
-                    "-Wl,-rpath,${rootProject.projectDir}/fmu-kt/libs/fmilib/lib"
+                    "-Wl,-rpath,${libDir}"
                 )
+            }
             }
         }
     }
 
     applyDefaultHierarchyTemplate()
-    /*
-     * Linux 64
-     */
-    linuxX64(nativeSetup)
-//    linuxArm64(nativeSetup)
-    /*
-     * Win 64
-     */
-    mingwX64(nativeSetup)
-    /*
-     * Apple OSs
-     */
-//    macosX64(nativeSetup)
-    macosArm64(nativeSetup)
-//    iosArm64(nativeSetup)
-//    iosSimulatorArm64(nativeSetup)
-//    watchosArm32(nativeSetup)
-//    watchosArm64(nativeSetup)
-//    watchosSimulatorArm64(nativeSetup)
-//    tvosArm64(nativeSetup)
-//    tvosSimulatorArm64(nativeSetup)
+    applyDefaultHierarchyTemplate()
+
+    val os = OperatingSystem.current()
+    when {
+        os.isMacOsX  -> macosArm64(nativeSetup)
+        os.isLinux   -> linuxX64(nativeSetup)
+        os.isWindows -> mingwX64(nativeSetup)
+        else -> error("Unsupported OS: $os")
+    }
 
     targets.all {
         compilations.all {

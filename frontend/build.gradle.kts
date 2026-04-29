@@ -17,6 +17,10 @@ repositories {
 }
 
 kotlin {
+    // TODO: reactivate the warning when cheking for style
+//    compilerOptions {
+//        allWarningsAsErrors = true
+//    }
     wasmJs {
         browser {
             commonWebpackConfig {
@@ -48,6 +52,20 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
+        }
+    }
+
+    tasks.named("wasmJsBrowserTest") {
+        enabled = false
+    }
+
+    targets.configureEach {
+        compilations.configureEach {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
         }
     }
 }

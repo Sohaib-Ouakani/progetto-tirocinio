@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest
+import org.gradle.internal.os.OperatingSystem
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -13,9 +15,10 @@ repositories {
 }
 
 val cLibrary by configurations.creating
+val fmilib = project(":fmilib")
 
 dependencies {
-    cLibrary(project(":fmilib"))
+    cLibrary(fmilib)
 }
 val platformDirName = mapOf(
     "macosArm64"  to "mac-aarch64",
@@ -26,6 +29,10 @@ val platformDirName = mapOf(
 val fmilibInstallDir = project(":fmilib").layout.buildDirectory.dir("fmilib-install").get().asFile
 
 kotlin {
+    // TODO: reactivate the warning when cheking for style
+//    compilerOptions {
+//        allWarningsAsErrors = true
+//    }
     val nativeSetup: KotlinNativeTarget.() -> Unit = {
         val platformDir = fmilibInstallDir
             .resolve(platformDirName[targetName] ?: error("Platform $targetName sconosciuta"))
@@ -35,20 +42,51 @@ kotlin {
         compilations["main"].cinterops {
             val libfmi by creating {
                 headers = files(includeDir.resolve("fmilib.h"))
-                compilerOpts("-I${includeDir}", "-DFMILIB_EXPORT=")
+                compilerOpts("-I${includeDir}")
             }
         }
         binaries {
             all {
-                linkerOpts(
-                    "-L${libDir}",
-                    "-lfmilib_shared",
-                    "-Wl,-rpath,${libDir}"
-                )
+                if (targetName == "linuxX64") {
+//                    linkerOpts(
+//                        "-L${libDir}",
+//                        "-lfmilib_shared",
+//                        "-Wl,-rpath,${libDir}",
+//                        "-L/usr/lib/x86_64-linux-gnu"        // libdl, libm, libc, ecc.
+//                    )
+                    linkerOpts(
+                        "-L${libDir}",
+                        "-lfmilib_shared",
+                        "-Wl,-rpath,${libDir}",
+                        "-L/usr/lib/x86_64-linux-gnu",
+                        "-Wl,--allow-shlib-undefined",
+                        "-Wl,--unresolved-symbols=ignore-all",
+                        "-Wl,--warn-unresolved-symbols"
+                    )
+                } else {
+                    linkerOpts(
+                        "-L${libDir}",
+                        "-lfmilib_shared",
+                        "-Wl,-rpath,${libDir}"
+                    )
+                }
             }
             staticLib()
         }
     }
+
+    // Override linker per Linux — separato da nativeSetup
+//    linuxX64 {
+//        compilations.all {
+//            compileTaskProvider.configure {
+//                compilerOptions {
+//                    freeCompilerArgs.add(
+//                        "-Xoverride-konan-properties=linker.linux_x64=/usr/bin/ld"
+//                    )
+//                }
+//            }
+//        }
+//    }
 
     sourceSets {
         val commonMain by getting {
@@ -59,16 +97,45 @@ kotlin {
     }
 
     applyDefaultHierarchyTemplate()
-    linuxX64(nativeSetup)
-//    linuxArm64(nativeSetup)
-    mingwX64(nativeSetup)
-//    macosX64(nativeSetup)
-    macosArm64(nativeSetup)
-//    iosArm64(nativeSetup)
-//    iosSimulatorArm64(nativeSetup)
-//    watchosArm32(nativeSetup)
-//    watchosArm64(nativeSetup)
-//    watchosSimulatorArm64(nativeSetup)
-//    tvosArm64(nativeSetup)
-//    tvosSimulatorArm64(nativeSetup)
+
+    val os = OperatingSystem.current()
+    when {
+        os.isMacOsX -> macosArm64(nativeSetup)
+        os.isLinux -> linuxX64(nativeSetup)
+        os.isWindows -> mingwX64(nativeSetup)
+        else -> error("Unsupported OS: $os")
+    }
+
+    targets.configureEach {
+        compilations.configureEach {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
+        }
+    }
+}
+
+// Funzione che restituisce sia lib (per le .dll.a) che bin (per le .dll)
+fun getNativeBinDirs(targetName: String): List<File> {
+    val platformDir = fmilibInstallDir.resolve(platformDirName[targetName] ?: error("Unknown target $targetName"))
+    return listOf(platformDir.resolve("lib"), platformDir.resolve("bin"))
+}
+
+tasks.withType<KotlinNativeTest>().configureEach {
+    if (name == "mingwX64Test") {
+        val binDirs = getNativeBinDirs("mingwX64")
+        doFirst {
+            val currentPath = environment["PATH"] ?: ""
+            val newPath = binDirs.joinToString(File.pathSeparator) { it.absolutePath } +
+                File.pathSeparator + currentPath
+            environment("PATH", newPath)
+            logger.lifecycle("PATH per mingwX64Test: $newPath")
+        }
+    }
+}
+
+tasks.matching { it.name.startsWith("cinterop") }.configureEach {
+    dependsOn(fmilib.tasks.build)
 }

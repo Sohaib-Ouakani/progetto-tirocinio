@@ -20,16 +20,41 @@ import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
 
 fun Application.configureRouting(baseDir: String) {
-    //val fmuPath = "$baseDir/resources/models/BouncingBall.fmu"
+    val baseDir = SystemFileSystem.resolve(Path(baseDir))
+
     val uploadDir = Path("$baseDir/resources/models/")
-    var fmuPath: Path? = null
     val extractedDirPath = Path("$baseDir/resources/extracted")
-    //val extractedPath = "$baseDir/resources/extracted"
+    var fmuPath: Path? = null
+    var fmu: Fmu? = null
+
     fun findCurrentFmu(): Path? =
         SystemFileSystem.list(uploadDir)
             .firstOrNull { it.name.endsWith(".fmu", ignoreCase = true) }
 
-    var fmu: Fmu? = null
+    fun deleteRecursively(path: Path) {
+        if (SystemFileSystem.metadataOrNull(path)?.isDirectory == true) {
+            SystemFileSystem.list(path).forEach { deleteRecursively(it) }
+        }
+        SystemFileSystem.delete(path)
+    }
+
+    fun resetUploadDirectory(): Unit =
+        SystemFileSystem.list(uploadDir)
+            .filter { it.name.endsWith(".fmu", ignoreCase = true) }
+            .forEach { SystemFileSystem.delete(it) }
+
+    fun resetExtractedDirectory(): Unit =
+        SystemFileSystem.list(extractedDirPath)
+            .filter { SystemFileSystem.metadataOrNull(it)?.isDirectory == true || it.name.endsWith(".xml", ignoreCase = true) }
+            .forEach { deleteRecursively(it) }
+
+    fun resetResourcesDirectory() {
+        resetExtractedDirectory()
+        resetUploadDirectory()
+    }
+
+
+    resetResourcesDirectory()
 
     install(createApplicationPlugin("FmuCleanup") {
         on(MonitoringEvent(ApplicationStopped)) {
@@ -37,7 +62,6 @@ fun Application.configureRouting(baseDir: String) {
             fmu = null
         }
     })
-
 
     routing {
         get("/health") { call.respondText("OK") }
@@ -51,8 +75,9 @@ fun Application.configureRouting(baseDir: String) {
                         if(fmuPath == null) {
                             return@get call.respondText("Error upload FMU first", status = HttpStatusCode.BadRequest)
                         }
+
                         fmu?.close() // Close previous FMU if it exists
-                        fmu = Fmu(fmuPath.toString(), extractedDirPath.toString())
+                        fmu = Fmu(fmuPath.toString(), extractedDirPath.toString(), baseDir.toString())
                     } catch (e: Exception) {
                         call.respondText(
                             "Error initializing FMU: ${e.message}",
@@ -60,6 +85,7 @@ fun Application.configureRouting(baseDir: String) {
                         )
                         return@get
                     }
+
                     call.respondText("to view info about the fmu type /fmi/info")
                 }
             }
@@ -84,10 +110,7 @@ fun Application.configureRouting(baseDir: String) {
                     ?: "uploaded_file"
                 val safeName = fileName.replace(Regex("[/\\\\:*?\"<>|]"), "_")
 
-                // Delete all existing .fmu files before saving the new one
-                SystemFileSystem.list(uploadDir)
-                    .filter { it.name.endsWith(".fmu", ignoreCase = true) }
-                    .forEach { SystemFileSystem.delete(it) }
+                resetResourcesDirectory()
 
                 val filePath = Path(uploadDir, safeName)
 

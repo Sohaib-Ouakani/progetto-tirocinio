@@ -2,6 +2,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 
 plugins {
     alias(libs.plugins.gradle.cmake)
+    `lifecycle-base`
 }
 
 //machines.customMachines.register("linux-amd64") {
@@ -25,13 +26,10 @@ val fmilibInstallDir = layout.buildDirectory.dir("fmilib-install").get().asFile
 val cmakeInstall by tasks.registering {
     dependsOn("cmakeBuild")
     outputs.dir(fmilibInstallDir)
-
     val execOps = project.serviceOf<ExecOperations>()
-
     doLast {
         val platformDirs = fmilibBuildDir.listFiles()?.filter { it.isDirectory }
             ?: error("cmake build dir non trovata in $fmilibBuildDir")
-
         platformDirs.forEach { platformDir ->
             val platformInstallDir = fmilibInstallDir.resolve(platformDir.name)
             execOps.exec {
@@ -44,14 +42,16 @@ val cmakeInstall by tasks.registering {
     }
 }
 
-tasks.named("cmakeBuild") {
-    finalizedBy(cmakeInstall)
-}
-
 val cmakeInstallClean by tasks.registering(Delete::class) {
-    delete(fmilibInstallDir)
+    doLast {
+        delete(fmilibInstallDir)
+    }
 }
 
-tasks.named("cmakeClean") {
-    finalizedBy(cmakeInstallClean)
+tasks.clean.configure {
+    dependsOn(cmakeInstallClean)
+}
+
+tasks.build.configure {
+    dependsOn(cmakeInstall)
 }

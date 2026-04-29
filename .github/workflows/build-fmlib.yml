@@ -2,23 +2,21 @@ name: Build FMILibrary
 
 on:
   push:
-    branches: [main]
+    branches: [ci-test]
   workflow_dispatch:
 
 jobs:
   build-linux:
     runs-on: ubuntu-latest
-    container:
-      image: debian:buster   # glibc 2.28, compatibile con KN
     steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git cmake build-essential curl unzip
+
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-
-      - name: Install dependencies
-        run: |
-          apt-get update
-          apt-get install -y cmake build-essential curl unzip
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -26,9 +24,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build and test
+      - name: Build
         run: |
-          ./gradlew cmakeBuild
+          ./gradlew build
+
+      - name: Test
+        run: |
           ./gradlew :fmu-kt:linuxX64Test
 
       - name: Upload install dir
@@ -52,7 +53,7 @@ jobs:
 
       - name: Build and test
         run: |
-          ./gradlew cmakeBuild
+          ./gradlew build
           ./gradlew :fmu-kt:macosArm64Test
 
       - name: Upload install dir
@@ -74,9 +75,32 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build and test
+      - name: Build
         run: |
-          ./gradlew cmakeBuild
+          ./gradlew build
+          
+      - name: List fmilib windows outputs
+        run: Get-ChildItem -Recurse "${{ github.workspace }}\fmilib\build\fmilib-install\windows-amd64"
+
+      - name: Show fmilib.h
+        run: Get-Content "${{ github.workspace }}\fmilib\build\fmilib-install\windows-amd64\include\fmilib.h"
+
+      - name: Check DLL dependencies with objdump
+        shell: pwsh
+        run: |
+          $objdumpPath = "C:\Users\runneradmin\.konan\dependencies\msys2-mingw-w64-x86_64-2\bin\objdump.exe"
+          $dllPath = "${{ github.workspace }}\fmilib\build\fmilib-install\windows-amd64\bin\libfmilib_shared.dll"
+          if (Test-Path $objdumpPath) {
+            Write-Host "objdump trovato a $objdumpPath"
+            & $objdumpPath -p $dllPath | Select-String "DLL Name"
+          } else {
+            Write-Host "objdump NON trovato. Cercando alternativa..."
+            # Fallback: prova a usare objdump dal PATH
+            objdump -p $dllPath | Select-String "DLL Name"
+          }
+
+      - name: Test
+        run: |
           ./gradlew :fmu-kt:mingwX64Test
 
       - name: Upload install dir

@@ -15,25 +15,24 @@ import native_wrapper.simulation.config.SimulationConfig
 import native_wrapper.simulation.results.SimulationResult
 import utility.FmuRecompiler
 
-enum class DLL_STATUS {
+enum class DLLSTATUS {
     OK, ERROR
 }
 
-const val FMU_PATH = "./resources/models/result.fmu"
-
 @OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
-class NativeFmiWrapper(val path: String, val resources: String) : AutoCloseable {
+class NativeFmiWrapper(val path: String, val resources: String, val baseDir: String) : AutoCloseable {
     var context: CPointer<fmi_import_context_t>? = fmi_import_allocate_context(null)
     var fmi: CPointer<cnames.structs.fmi2_import_t>? = null
     var fmuInfo: FmuInfo
-    val dllStatus: DLL_STATUS
+    val dllStatus: DLLSTATUS
     var experimentInstance: Int? = null
     var simulationConfig: SimulationConfig? = null
 
     init {
-        var fmuFile = FMU_PATH
-        if (Platform.osFamily != OsFamily.WINDOWS) {
-            println("Running on non-Windows OS, recompiling FMU")
+        val fmuOutputPath = "$baseDir/resources/models/result.fmu"
+        var fmuFile = fmuOutputPath
+        if (Platform.osFamily == OsFamily.MACOSX) {
+            println("Running on  MacOS, recompiling FMU")
             val recompiler = FmuRecompiler()
             recompiler.recompile(path, fmuFile)
         } else {
@@ -49,7 +48,7 @@ class NativeFmiWrapper(val path: String, val resources: String) : AutoCloseable 
         fmuInfo = getInfo()
 
         val dllResult = fmi2_import_create_dllfmu(fmi, fmi_version_2_0_enu, null)
-        dllStatus = if (dllResult == 0) DLL_STATUS.OK else DLL_STATUS.ERROR
+        dllStatus = if (dllResult == 0) DLLSTATUS.OK else DLLSTATUS.ERROR
     }
 
     private fun getInfo(): FmuInfo {

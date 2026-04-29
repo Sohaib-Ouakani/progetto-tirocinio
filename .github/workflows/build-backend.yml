@@ -1,0 +1,79 @@
+name: Build and Test Backend
+
+on:
+  push:
+    branches: [ci-test]
+  workflow_dispatch:
+
+jobs:
+  test-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build
+        run: ./gradlew build
+
+      - name: Start backend and health check
+        run: |
+          ./backend/build/bin/linuxX64/releaseExecutable/backend.kexe ./backend &
+          sleep 10
+          curl --fail http://localhost:8080/health
+
+  test-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build
+        run: ./gradlew build
+
+      - name: Start backend and health check
+        run: |
+          ./backend/build/bin/macosArm64/releaseExecutable/backend.kexe ./backend &
+          sleep 10
+          curl --fail http://localhost:8080/health
+
+  test-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build
+        run: ./gradlew build
+
+      - name: Start backend and health check
+        shell: pwsh
+        run: |
+          $fmilibBinDir = "./fmilib/build/fmilib-install/windows-amd64/bin"
+          $env:PATH = "$fmilibBinDir;$env:PATH"
+          
+          $proc = Start-Process -FilePath "./backend/build/bin/mingwX64/releaseExecutable/backend.exe" `
+            -ArgumentList "./backend" -PassThru
+          Start-Sleep -Seconds 15
+          try {
+            curl.exe --fail http://localhost:8080/health
+          } finally {
+            $proc | Stop-Process
+          }

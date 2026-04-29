@@ -9,5 +9,7 @@ kotlin-js-store
 *.hprof
 local.properties
 .Ds_Store
-backend/resources/extracted/
-backend/resources/models/
+backend/resources/extracted/*
+backend/resources/models/*
+!backend/resources/extracted/.gitkeep
+!backend/resources/models/.gitkeep
