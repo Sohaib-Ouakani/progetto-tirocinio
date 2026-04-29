@@ -1,7 +1,13 @@
-package utility
+package recompiler
 
+import com.fleeksoft.ksoup.Ksoup
+import com.fleeksoft.ksoup.nodes.Document
+import com.fleeksoft.ksoup.nodes.Element
+import com.fleeksoft.ksoup.parser.Parser
 import platform.posix.F_OK
 import platform.posix.access
+import utility.FilesystemManager
+import utility.ProcessExecution
 
 actual class FmuRecompiler {
     private val exec = ProcessExecution()
@@ -19,6 +25,38 @@ actual class FmuRecompiler {
             .map { it.groupValues[1] }
             .toList()
             .also { check(it.isNotEmpty()) { "Nessun file sorgente trovato in <SourceFiles>" } }
+    }
+    private fun findModelId(xml: String): String {
+        val doc: Document = Ksoup.parse(xml, parser = Parser.xmlParser())
+
+        val csEl: Element? = doc.selectFirst("CoSimulation")
+        val meEl: Element? = doc.selectFirst("ModelExchange")
+        val csmeEl: Element? = doc.selectFirst("CoSimulationAndModelExchange")
+
+        check( csEl != null || meEl != null || csmeEl != null ) { "Unrecognized FMU kind" }
+
+        val kindElement = doc.selectFirst("CoSimulation, ModelExchange, CoSimulationAndModelExchange")
+            ?: error("No CoSimulation/ModelExchange tag found — invalid modelDescription.xml")
+
+        val modelId = kindElement.attr("modelIdentifier")
+            .also { check(it.isNotBlank()) { "modelIdentifier not found" } }
+        println("KSOUP model identifier: $modelId")
+
+        return modelId
+    }
+
+
+    private fun findSourceFiles(xml: String): List<String> {
+        val doc: Document = Ksoup.parse(xml, parser = Parser.xmlParser())
+
+        val kindElement = doc.selectFirst("CoSimulation, ModelExchange, CoSimulationAndModelExchange")
+            ?: error("No CoSimulation/ModelExchange tag found — invalid modelDescription.xml")
+
+        val sourceFiles = kindElement.select("SourceFiles > File")
+            .map { it.attr("name") }
+            .also { check(it.isNotEmpty()) { "No source files found in <SourceFiles>" } }
+
+        return sourceFiles
     }
 
     private fun discoverAliasFlags(nm: String, objs: List<String>, modelId: String, fmiPrefix: String): List<String> =
@@ -117,27 +155,26 @@ actual class FmuRecompiler {
     actual fun recompile(inputFmu: String, outputFmu: String) {
         val input = fs.pathAbsolute(inputFmu)
         val output = fs.pathAbsolute(outputFmu)
-        check(fs.fileExists(input)) { "FMU non trovato: $input" }
+        check(fs.fileExists(input)) { "FMU not found: $input" }
 
         val tmp = exec.runWithOutput("mktemp", "-d", "/tmp/fmu_recompile_XXXXXX")
-            .also { check(it.isNotBlank()) { "mktemp fallito" } }
+            .also { check(it.isNotBlank()) { "temp folder creation failed" } }
         val extracted = "$tmp/extracted"
         exec.run("mkdir", "-p", extracted)
 
 
         try {
-            check(exec.run("unzip", "-q", input, "-d", extracted) == 0) { "Estrazione fallita" }
+            check(exec.run("unzip", "-q", input, "-d", extracted) == 0) { "Extraction failed" }
 
-            val xml      = fs.readFile("$extracted/modelDescription.xml")
-            val modelId  = xmlAttr(xml, "modelIdentifier").also { check(it.isNotBlank())
-            { "modelIdentifier non trovato" } }
+            val xml = fs.readFile("$extracted/modelDescription.xml")
+            val modelId  = findModelId(xml)
             val fmiPrefix = "fmi2"
 
             val sourcesDir = "$extracted/sources"
-            check(access(sourcesDir, F_OK) == 0) { "Nessuna cartella sources/ — FMU solo binario" }
+            check(access(sourcesDir, F_OK) == 0) { "No source folder, precompiled FMU" }
             synthesiseFmi2Headers(sourcesDir)
 
-            val sources = extractSources(xml).map { "$sourcesDir/$it" }
+            val sources = findSourceFiles(xml).map { "$sourcesDir/$it" }
 
             val targets = listOf("arm64-apple-macos11", "x86_64-apple-macos10.13")
             val objsByArch = targets.associateWith { target ->
