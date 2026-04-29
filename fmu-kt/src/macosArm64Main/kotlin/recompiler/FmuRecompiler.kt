@@ -2,14 +2,24 @@ package recompiler
 
 import platform.posix.F_OK
 import platform.posix.access
+import platform.posix.open
+import utility.ClangComplier
 import utility.DescriptionParser
 import utility.FilesystemManager
 import utility.FmiHeaderSynthesiser
+import utility.FmuPackager
 import utility.ProcessExecution
 
 actual class FmuRecompiler {
     private val exec = ProcessExecution()
     private val fs = FilesystemManager()
+    private val packager = FmuPackager(exec, fs)
+    private val complier = ClangComplier(exec)
+    private val headers = FmiHeaderSynthesiser(fs)
+
+    private val fmiPrefix = "fmi2"
+    private val targets = listOf("arm64-apple-macos11", "x86_64-apple-macos10.13")
+
     private fun discoverAliasFlags(nm: String, objs: List<String>, modelId: String, fmiPrefix: String): List<String> =
         objs.flatMap { obj ->
             exec.runWithOutput(nm, "--defined-only", obj)
@@ -23,6 +33,72 @@ actual class FmuRecompiler {
         }.distinct()
 
     actual fun recompile(inputFmu: String, outputFmu: String) {
+        val input = fs.pathAbsolute(inputFmu)
+        val output = fs.pathAbsolute(outputFmu)
+        check(fs.fileExists(input)) { "FMU not found: $input" }
+
+        packager.withTempDir { tmp ->
+            val extracted = "$tmp/extracted"
+            packager.extract(input, extracted)
+
+            val xml = fs.readFile("$extracted/modelDescription.xml")
+            val parser = DescriptionParser(xml)
+            val modelId  = parser.findModelId()
+            val sourcesDir = "$extracted/sources"
+
+            check(access(sourcesDir, F_OK) == 0) { "No source folder, precompiled FMU" }
+
+            headers.synthesise(sourcesDir)
+
+            val sources = parser.findSourceFiles().map { "$sourcesDir/$it" }
+
+            val objsByArch = targets.associateWith { target ->
+                val arch = target.substringBefore("-")
+                complier.compileObjects(
+                    sources = sources,
+                    target = target,
+                    includeDir = sourcesDir,
+                    outDir = "$tmp/obj_$arch"
+                )
+            }
+
+            // Alias of symbols of arm64 are the same of x86_64, that's why .first()
+            val aliasFlags = complier.discoverAliasFlags(
+                objs = objsByArch.values.first(),
+                modelId = modelId,
+                fmiPrefix = fmiPrefix
+            )
+
+            val slices = targets.map { target ->
+                val arch  = target.substringBefore("-")
+                val slice = "$tmp/$arch.dylib"
+
+                complier.linkDylib(
+                    objs = objsByArch[target]!!,
+                    target = target,
+                    aliasFlags = aliasFlags,
+                    out = slice
+                )
+                slice
+            }
+
+            val universal = "$tmp/$modelId.dylib"
+            complier.createUniversalBinary(
+                slices = slices,
+                out = universal
+            )
+
+            val binDest = "$extracted/binaries/darwin64"
+            exec.run("mkdir", "-p", binDest)
+            exec.run("cp", universal, "$binDest/$modelId.dylib")
+
+            packager.zip(binDest, output)
+
+            println("Recompilation successful: $output")
+        }
+    }
+
+    fun recompile2(inputFmu: String, outputFmu: String) {
         val input = fs.pathAbsolute(inputFmu)
         val output = fs.pathAbsolute(outputFmu)
         check(fs.fileExists(input)) { "FMU not found: $input" }
