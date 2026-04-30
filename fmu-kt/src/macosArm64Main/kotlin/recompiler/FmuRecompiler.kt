@@ -94,7 +94,7 @@ actual class FmuRecompiler {
             exec.run("mkdir", "-p", binDest)
             exec.run("cp", universal, "$binDest/$modelId.dylib")
 
-            packager.zip(binDest, output)
+            packager.zip(extracted, output)
 
             println("Recompilation successful: $output")
         }
