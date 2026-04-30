@@ -55,7 +55,13 @@ import recompiler.FmuRecompiler
  * Status of DLL loading operations.
  */
 enum class DLLSTATUS {
+    /**
+     * Status for successful loading operation.
+     */
     OK,
+    /**
+     * Status for failed loading operation.
+     */
     ERROR
 }
 
