@@ -11,12 +11,30 @@ import platform.posix.popen
 import platform.posix.system
 const val BUFFER_SIZE = 4096
 
+/**
+ * Executes system processes and commands.
+ * Provides methods to run commands with and without capturing output.
+ */
 class ProcessExecution {
+    /**
+     * Executes a system command with the given arguments.
+     *
+     * @param args The command and arguments to execute, where the first element
+     *             should be the command name and subsequent elements should be the arguments.
+     * @return The exit status code of the executed command. Returns 0 on success.
+     */
     fun run (vararg args: String): Int {
         val cmd = args.joinToString(" ") { if (it.contains(" ")) "\"$it\"" else it }
         return system(cmd)
     }
 
+    /**
+     * Executes a system command and captures its standard output.
+     *
+     * @param args The command and arguments to execute, where the first element
+     *              should be the command name and subsequent elements should be the arguments.
+     * @return The standard output from the command, trimmed of leading/trailing whitespace.
+     */
     @OptIn(ExperimentalForeignApi::class)
     fun runWithOutput(vararg args: String): String {
         val cmd = args.joinToString(" ") { if (it.contains(" ")) "\"$it\"" else it }

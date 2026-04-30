@@ -14,9 +14,19 @@ import platform.posix.fputs
 import platform.posix.getcwd
 const val UNSGN_BUFFER_SIZE = 4096uL
 
+/**
+ * Manages file system operations including reading, writing, and checking file existence.
+ * Provides utilities for path manipulation and absolute path resolution.
+ */
 class FilesystemManager {
 
-
+    /**
+     * Reads the complete contents of a file as a string.
+     *
+     * @param fileName The path to the file to read.
+     * @return The file contents as a trimmed string, or an empty string if the file cannot be opened.
+     * @throws IllegalStateException if the file does not exist.
+     */
     @OptIn(ExperimentalForeignApi::class)
     fun readFile(fileName: String): String {
         check(fileExists(fileName)) { "File does not exist: $fileName" }
@@ -34,6 +44,12 @@ class FilesystemManager {
         return sb.toString().trim()
     }
 
+    /**
+     * Writes content to a file, overwriting it if it already exists.
+     *
+     * @param fileName The path to the file to write to.
+     * @param content The content to write to the file.
+     */
     @OptIn(ExperimentalForeignApi::class)
     fun writeFile(fileName: String, content: String) {
         val file = fopen(fileName, "w") ?: return
@@ -41,6 +57,13 @@ class FilesystemManager {
         fclose(file)
     }
 
+    /**
+     * Converts a file path to an absolute path.
+     * If the path is already absolute (starts with "/"), it is returned unchanged.
+     *
+     * @param path The file path to convert.
+     * @return The absolute path as a string.
+     */
     @OptIn(ExperimentalForeignApi::class)
     fun pathAbsolute(path: String): String {
         if (path.startsWith("/")) return path
@@ -51,6 +74,12 @@ class FilesystemManager {
         }
     }
 
+    /**
+     * Checks whether a file or directory exists at the given path.
+     *
+     * @param name The file or directory path to check.
+     * @return True if the file or directory exists, false otherwise.
+     */
     fun fileExists(name: String): Boolean {
         return access(name, F_OK) == 0
     }

@@ -1,7 +1,19 @@
 package utility
 
+/**
+ * Synthesizes FMI (Functional Mock-up Interface) header files required for compilation.
+ * Creates the necessary header files that define FMI types, functions, and function signatures.
+ *
+ * @param fs The [FilesystemManager] instance used to write header files to disk.
+ */
 class FmiHeaderSynthesiser(private val fs: FilesystemManager) {
 
+    /**
+     * Generates and writes FMI header files to the specified directory.
+     * Creates fmi2FunctionTypes.h, fmi2Functions.h, and fmi2TypesPlatform.h files.
+     *
+     * @param dir The directory where the header files will be written.
+     */
     fun synthesise(dir: String) {
         fs.writeFile("$dir/fmi2FunctionTypes.h", FMI2_FUNCTION_TYPES)
         fs.writeFile("$dir/fmi2Functions.h", FMI2_FUNCTIONS)

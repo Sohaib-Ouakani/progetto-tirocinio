@@ -9,16 +9,31 @@ import utility.FmiHeaderSynthesiser
 import utility.FmuPackager
 import utility.ProcessExecution
 
+/**
+ * Recompiles FMU (Functional Mock-up Unit) files for the macOS ARM64 platform.
+ * This class handles the extraction of FMU contents, compilation of source files,
+ * linking into universal binaries supporting multiple architectures, and repackaging.
+ */
 actual class FmuRecompiler {
     private val exec = ProcessExecution()
     private val fs = FilesystemManager()
-    private val packager = FmuPackager(exec, fs)
+    private val packager = FmuPackager(exec)
     private val complier = ClangComplier(exec)
     private val headers = FmiHeaderSynthesiser(fs)
 
     private val fmiPrefix = "fmi2"
     private val targets = listOf("arm64-apple-macos11", "x86_64-apple-macos10.13")
 
+    /**
+     * Recompiles the given input FMU file and produces a new FMU at the output path.
+     * The process involves extracting the FMU, synthesizing necessary headers,
+     * compiling source files for specified targets, linking into a universal binary,
+     * and repackaging the modified FMU.
+     *
+     * @param inputFmu The file path to the input FMU file.
+     * @param outputFmu The file path where the recompiled FMU will be saved.
+     * @throws IllegalStateException if the input FMU does not exist or lacks source files.
+     */
     actual fun recompile(inputFmu: String, outputFmu: String) {
         val input = fs.pathAbsolute(inputFmu)
         val output = fs.pathAbsolute(outputFmu)
