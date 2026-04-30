@@ -6,11 +6,20 @@ import kotlinx.cinterop.toKString
 import platform.posix.access
 import platform.posix.F_OK
 
+/**
+ * Integration tests for the [FmuRecompiler] class.
+ * Tests the end-to-end FMU recompilation process using real FMU files.
+ */
 class FmuRecompilerIntegrationTest {
 
+    /**
+     * Tests the recompilation of an FMU file specified by the TEST_FMU_PATH environment variable.
+     * Verifies that the output FMU is successfully created at the expected location.
+     * Skips the test if TEST_FMU_PATH is not set, for CI integration purposes.
+     */
     @OptIn(ExperimentalForeignApi::class)
     @Test
-    fun recompileFgstmu() {
+    fun recompileFmu() {
         val fmuPath = platform.posix.getenv("TEST_FMU_PATH")
             ?.toKString() ?: run {
             println("TEST_FMU_PATH not set, skipping integration test")

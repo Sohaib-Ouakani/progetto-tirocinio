@@ -3,8 +3,16 @@ import kotlin.test.assertNotNull
 import kotlinx.cinterop.ExperimentalForeignApi
 import libfmi.fmi_version_2_0_enu
 
+/**
+ * Tests for native FMI (Functional Mock-up Interface) wrapper functionality.
+ * Verifies C interop bindings and FMILib integration.
+ */
 class NativeFmiWrapperTest {
 
+    /**
+     * Tests C interop functionality by verifying that the FMILib version enum is accessible.
+     * This test ensures that the native library bindings are working correctly.
+     */
     @OptIn(ExperimentalForeignApi::class)
     @Test
     fun testCinterop() {
