@@ -20,6 +20,10 @@ class FmiHeaderSynthesiser(private val fs: FilesystemManager) {
         fs.writeFile("$dir/fmi2TypesPlatform.h", FMI2_TYPES_PLATFORM)
     }
 
+    /**
+     * Companion object containing the predefined FMI 2.0 header file contents.
+     * These constants define the standard C header files required for FMI-compliant compilation.
+     */
     companion object {
         private val FMI2_FUNCTION_TYPES = """
         #ifndef fmi2FunctionTypes_h

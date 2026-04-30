@@ -9,6 +9,7 @@ import platform.posix.fgets
 import platform.posix.pclose
 import platform.posix.popen
 import platform.posix.system
+/** Buffer size for reading command output, defined as an integer. */
 const val BUFFER_SIZE = 4096
 
 /**

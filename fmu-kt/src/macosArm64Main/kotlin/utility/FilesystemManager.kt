@@ -12,6 +12,7 @@ import platform.posix.fgets
 import platform.posix.fopen
 import platform.posix.fputs
 import platform.posix.getcwd
+/** Buffer size for file operations, defined as an unsigned long. */
 const val UNSGN_BUFFER_SIZE = 4096uL
 
 /**
