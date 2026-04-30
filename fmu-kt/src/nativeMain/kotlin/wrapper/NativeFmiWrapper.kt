@@ -51,10 +51,29 @@ import wrapper.simulation.config.SimulationConfig
 import wrapper.simulation.results.SimulationResult
 import recompiler.FmuRecompiler
 
+/**
+ * Status of DLL loading operations.
+ */
 enum class DLLSTATUS {
-    OK, ERROR
+    OK,
+    ERROR
 }
 
+/**
+ * Low-level wrapper for native FMI (Functional Mock-up Interface) operations.
+ * Provides direct access to FMILib functions for loading, configuring, and running FMU simulations.
+ * Handles platform-specific recompilation on macOS and manages FMU lifecycle.
+ *
+ * @property path Path to the FMU file.
+ * @property resources Path to the resource directory.
+ * @property baseDir Base directory for operations.
+ * @property context FMILib context pointer.
+ * @property fmi FMILib import pointer.
+ * @property fmuInfo Information about the loaded FMU.
+ * @property dllStatus Status of DLL loading.
+ * @property experimentInstance Current experiment instance ID, null if not instantiated.
+ * @property simulationConfig Current simulation configuration, null if not set.
+ */
 @OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 class NativeFmiWrapper(val path: String, val resources: String, val baseDir: String) : AutoCloseable {
     var context: CPointer<fmi_import_context_t>? = fmi_import_allocate_context(null)
@@ -119,7 +138,7 @@ class NativeFmiWrapper(val path: String, val resources: String, val baseDir: Str
         )
     }
 
-    fun instantiate(experimentName: String = "default") {
+    private fun instantiate(experimentName: String = "default") {
         check(experimentInstance == null) { "Esperimento già istanziato" }
         experimentInstance = fmi2_import_instantiate(
             fmi,
@@ -130,6 +149,13 @@ class NativeFmiWrapper(val path: String, val resources: String, val baseDir: Str
         )
     }
 
+    /**
+     * Sets up the experiment with the given simulation configuration.
+     * Configures the FMU for simulation including tolerance, start/stop times, and enters initialization mode.
+     * If no experiment instance exists, one will be created automatically.
+     *
+     * @param config The simulation configuration containing parameters like start time, stop time, tolerance, etc.
+     */
     fun setupExperiment(config: SimulationConfig) {
         if (experimentInstance == null) instantiate(config.experimentName)
 
@@ -148,6 +174,14 @@ class NativeFmiWrapper(val path: String, val resources: String, val baseDir: Str
         fmi2_import_exit_initialization_mode(fmi)
     }
 
+    /**
+     * Executes the simulation experiment and returns the results.
+     * Runs the simulation from start time to stop time, recording variable values at each time step.
+     * Uses the variables specified in the simulation config, or all variables if none specified.
+     *
+     * @return A [SimulationResult] containing timestamps and variable values from the simulation.
+     * @throws IllegalStateException if no experiment instance or simulation config is set.
+     */
     fun executeExperiment(): SimulationResult {
         checkNotNull(experimentInstance) { "Experiment instance must not be null" }
         val config = checkNotNull(simulationConfig) { "Simulation config must not be null" }
@@ -232,12 +266,12 @@ class NativeFmiWrapper(val path: String, val resources: String, val baseDir: Str
         }
     }
 
-    fun destroyFmi() {
-        fmi2_import_destroy_dllfmu(fmi)
-        fmi2_import_free(fmi)
-        fmi_import_free_context(context)
-    }
-
+    /**
+     * Closes the FMU wrapper and releases all associated resources.
+     * This method is called automatically when using try-with-resources or when the object is garbage collected.
+     * Safely handles cleanup even if some operations fail, using runCatching to prevent exceptions.
+     * After calling this method, the wrapper cannot be used for further operations.
+     */
     override fun close() {
         runCatching {
             if (experimentInstance != null) fmi2_import_terminate(fmi)
