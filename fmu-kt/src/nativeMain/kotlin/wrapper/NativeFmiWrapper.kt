@@ -72,7 +72,7 @@ enum class DLLSTATUS {
  *
  * @property path Path to the FMU file.
  * @property resources Path to the resource directory.
- * @property baseDir Base directory for operations.
+ * @property modelsDir Directory where models are stored.
  * @property context FMILib context pointer.
  * @property fmi FMILib import pointer.
  * @property fmuInfo Information about the loaded FMU.
@@ -81,7 +81,7 @@ enum class DLLSTATUS {
  * @property simulationConfig Current simulation configuration, null if not set.
  */
 @OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
-class NativeFmiWrapper(val path: String, val resources: String, val baseDir: String) : AutoCloseable {
+class NativeFmiWrapper(val path: String, val resources: String, val modelsDir: String) : AutoCloseable {
     var context: CPointer<fmi_import_context_t>? = fmi_import_allocate_context(null)
     var fmi: CPointer<cnames.structs.fmi2_import_t>? = null
     var fmuInfo: FmuInfo
@@ -90,7 +90,7 @@ class NativeFmiWrapper(val path: String, val resources: String, val baseDir: Str
     var simulationConfig: SimulationConfig? = null
 
     init {
-        val fmuOutputPath = "$baseDir/resources/models/result.fmu"
+        val fmuOutputPath = "$modelsDir/result.fmu"
         var fmuFile = fmuOutputPath
         if (Platform.osFamily == OsFamily.MACOSX) {
             println("Running on  MacOS, recompiling FMU")

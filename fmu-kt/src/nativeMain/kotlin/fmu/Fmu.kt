@@ -13,11 +13,11 @@ import wrapper.simulation.results.SimulationResult
  *
  * @property fmuPath Path to the FMU file.
  * @property resourcesPath Path to the resources' directory.
- * @property baseDir Base directory for operations.
+ * @property modelsDir Directory where models are stored.
  * @property fmuInfo Information about the loaded FMU.
  */
-class Fmu(val fmuPath: String, val resourcesPath: String, val baseDir: String) : AutoCloseable {
-    private val fmi: NativeFmiWrapper = NativeFmiWrapper(fmuPath, resourcesPath, baseDir)
+class Fmu(val fmuPath: String, val resourcesPath: String, val modelsDir: String) : AutoCloseable {
+    private val fmi: NativeFmiWrapper = NativeFmiWrapper(fmuPath, resourcesPath, modelsDir)
     val fmuInfo: FmuInfo = fmi.fmuInfo
     private var fmiClosed = false
 
