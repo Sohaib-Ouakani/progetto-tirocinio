@@ -96,3 +96,17 @@ kotlin {
         }
     }
 }
+
+// in backend/build.gradle.kts
+val copyFmilibDllForWindows by tasks.registering(Copy::class) {
+    val binDir = fmilibInstallDir.resolve("windows-amd64/bin")
+    from(binDir) {
+        include("*.dll")
+    }
+    into(layout.buildDirectory.dir("bin/mingwX64/releaseExecutable"))
+    dependsOn(project(":fmilib").tasks.named("build"))
+}
+
+tasks.matching { it.name == "linkReleaseExecutableMingwX64" }.configureEach {
+    finalizedBy(copyFmilibDllForWindows)
+}

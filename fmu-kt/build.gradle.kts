@@ -144,23 +144,6 @@ tasks.withType<KotlinNativeTest>().configureEach {
     }
 }
 
-//copy th dll near the .exe
-val copyFmilibDllForWindows by tasks.registering(Copy::class) {
-    val binDir = fmilibInstallDir.resolve("windows-amd64/bin")
-    from(binDir) {
-        include("*.dll")
-    }
-    // Copy next to both debug and release executables
-    into(layout.buildDirectory.dir("bin/mingwX64/releaseExecutable"))
-
-    dependsOn(project(":fmilib").tasks.named("build"))
-}
-
-// Make sure the copy happens automatically after the executable is linked
-tasks.matching { it.name == "linkReleaseExecutableMingwX64" }.configureEach {
-    finalizedBy(copyFmilibDllForWindows)
-}
-
 tasks.matching { it.name.startsWith("cinterop") }.configureEach {
     dependsOn(fmilib.tasks.build)
 }
