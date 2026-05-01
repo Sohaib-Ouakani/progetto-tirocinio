@@ -68,6 +68,8 @@ jobs:
         run: |
           # $fmilibBinDir = "./fmilib/build/fmilib-install/windows-amd64/bin"
           # $env:PATH = "$fmilibBinDir;$env:PATH"
+  
+          Get-ChildItem "./backend/build/bin/mingwX64/releaseExecutable/"
           
           $proc = Start-Process -FilePath "./backend/build/bin/mingwX64/releaseExecutable/backend.exe" `
             -PassThru
