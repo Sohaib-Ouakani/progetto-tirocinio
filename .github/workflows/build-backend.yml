@@ -23,7 +23,7 @@ jobs:
 
       - name: Start backend and health check
         run: |
-          ./backend/build/bin/linuxX64/releaseExecutable/backend.kexe ./backend &
+          ./backend/build/bin/linuxX64/releaseExecutable/backend.kexe &
           sleep 10
           curl --fail http://localhost:8080/health
 
@@ -44,7 +44,7 @@ jobs:
 
       - name: Start backend and health check
         run: |
-          ./backend/build/bin/macosArm64/releaseExecutable/backend.kexe ./backend &
+          ./backend/build/bin/macosArm64/releaseExecutable/backend.kexe &
           sleep 10
           curl --fail http://localhost:8080/health
 
@@ -70,7 +70,7 @@ jobs:
           # $env:PATH = "$fmilibBinDir;$env:PATH"
           
           $proc = Start-Process -FilePath "./backend/build/bin/mingwX64/releaseExecutable/backend.exe" `
-            -ArgumentList "./backend" -PassThru
+            -PassThru
           Start-Sleep -Seconds 15
           try {
             curl.exe --fail http://localhost:8080/health
