@@ -155,12 +155,6 @@ class SimulationManager(
                 }
 
                 println("---- Simulation End ----")
-
-                fmi2_import_terminate(lifecycleManager.fmiStruct)
-                fmi2_import_free_instance(lifecycleManager.fmiStruct)
-
-                isSimulationSetup = false
-                simulationConfig = null
             }
             val results = SimulationResult(
                 timestamps = timestamps,
