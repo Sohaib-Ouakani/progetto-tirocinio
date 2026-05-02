@@ -82,6 +82,16 @@ fun Application.configureRouting(resourceManger: ResourceManager) {
                     ?: "uploaded_file"
                 val safeName = fileName.replace(Regex("[/\\\\:*?\"<>|]"), "_")
 
+                // Reject if not .fmu (case insensitive)
+                if (!safeName.lowercase().endsWith(".fmu")) {
+                    println("Non FMU file upload attempted: $safeName")
+                    call.respondText(
+                        "Only .fmu files are allowed",
+                        status = HttpStatusCode.BadRequest
+                    )
+                    return@post
+                }
+
                 resourceManger.resetResourcesDirectory()
 
                 val filePath = Path(resourceManger.uploadDir, safeName)
