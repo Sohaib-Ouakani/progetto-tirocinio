@@ -50,6 +50,7 @@ fun Application.configureRouting(resourceManger: ResourceManager) {
                             resourceManger.uploadDir.toString()
                         )
                     } catch (e: Exception) {
+                        println("Error initializing FMU: ${e.message}")
                         call.respondText(
                             "Error initializing FMU: ${e.message}",
                             status = HttpStatusCode.InternalServerError

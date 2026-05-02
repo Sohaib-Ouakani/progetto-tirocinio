@@ -26,6 +26,7 @@ import libfmi.fmi2_import_get_default_experiment_step
 import libfmi.fmi2_import_get_default_experiment_stop
 import libfmi.fmi2_import_get_description
 import libfmi.fmi2_import_get_fmu_kind
+import libfmi.fmi2_import_get_last_error
 import libfmi.fmi2_import_get_model_name
 import libfmi.fmi2_import_get_model_version
 import libfmi.fmi2_import_get_real
@@ -106,6 +107,9 @@ class NativeFmiWrapper(val path: String, val resources: String, val modelsDir: S
             resources
         )
         this.fmi = fmi2_import_parse_xml(context, resources, null)
+        requireNotNull(this.fmi) {
+            "Failed to parse XML. The FMU may be corrupt or unsupported."
+        }
         fmuInfo = getInfo()
 
         val dllResult = fmi2_import_create_dllfmu(fmi, fmi_version_2_0_enu, null)
