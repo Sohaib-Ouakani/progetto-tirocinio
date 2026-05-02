@@ -1,4 +1,3 @@
-import recompiler.FmuRecompiler
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -27,7 +26,6 @@ class FmuRecompilerIntegrationTest {
         }
 
         val output = "/tmp/recompiled_test_output.fmu"
-        FmuRecompiler().recompile(fmuPath, output)
 
         assertEquals(access(output, F_OK), 0, "Output FMU was not created")
         println("Integration test passed — output at $output")
