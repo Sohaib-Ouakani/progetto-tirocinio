@@ -36,12 +36,12 @@ class NativeFmiWrapper(
     preprocessor: FmuPreprocessor
 ) : AutoCloseable {
 
-    val fmuLifecycle: FmuLifecycleManager = FmuLifecycleManager(
+    private val fmuLifecycle: FmuLifecycleManager = FmuLifecycleManager(
         preprocessor.prepare(path, modelsDir),
         resources
     )
-    val infoFmu: InfoManagerFmu = InfoManagerFmu(fmuLifecycle)
-    val simulationManager: SimulationManager = SimulationManager(fmuLifecycle, infoFmu)
+    private val infoFmu: InfoManagerFmu = InfoManagerFmu(fmuLifecycle)
+    private val simulationManager: SimulationManager = SimulationManager(fmuLifecycle, infoFmu)
 
     init {
         fmuLifecycle.start()
