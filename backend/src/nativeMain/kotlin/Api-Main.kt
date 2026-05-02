@@ -19,7 +19,5 @@ fun main(args: Array<String>) {
             resourceManager.terminateResourcesDirectory()
         }
     }
-
-    server.addShutdownHook { resourceManager.terminateResourcesDirectory() }
     server.start(wait = true)
 }
