@@ -1,10 +1,8 @@
 package fmu
 
 import preprocessor.factory.createPreprocessor
-import wrapper.DLLSTATUS
 import wrapper.NativeFmiWrapper
 import wrapper.fmuData.info.FmuInfo
-import wrapper.fmuLifecycle.FmuLifecycleManager
 import wrapper.simulation.config.SimulationConfig
 import wrapper.simulation.results.SimulationResult
 
@@ -13,10 +11,14 @@ import wrapper.simulation.results.SimulationResult
  * Provides a simplified interface for loading, configuring, running, and managing FMU simulations.
  * Implements [AutoCloseable] to ensure proper resource cleanup.
  *
- * @property fmuPath Path to the FMU file.
- * @property resourcesPath Path to the resources' directory.
- * @property modelsDir Directory where models are stored.
- * @property fmuInfo Information about the loaded FMU.
+ * This class acts as the main entry point for FMU interactions, hiding complexity of the low-level
+ * [NativeFmiWrapper] and providing a clean API for users.
+ *
+ * @property fmuPath Path to the FMU file to be loaded.
+ * @property resourcesPath Path to the resources directory containing extracted FMU contents.
+ * @property modelsDir Directory where compiled models are stored.
+ * @property fmuInfo FMU metadata including model name, description, and available variables.
+ * @throws IllegalArgumentException if the FMU cannot be loaded or is corrupted.
  */
 class Fmu(val fmuPath: String, val resourcesPath: String, val modelsDir: String) : AutoCloseable {
     private val fmi: NativeFmiWrapper = NativeFmiWrapper(

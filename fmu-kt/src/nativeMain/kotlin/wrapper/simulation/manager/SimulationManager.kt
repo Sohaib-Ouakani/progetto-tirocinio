@@ -23,15 +23,41 @@ import wrapper.fmuLifecycle.FmuLifecycleManager
 import wrapper.simulation.config.SimulationConfig
 import wrapper.simulation.results.SimulationResult
 
+/**
+ * Manages FMU simulation execution including setup, initialization, and result collection.
+ * Orchestrates the complete simulation workflow from configuration to result retrieval.
+ * Handles variable resolution, simulation stepping, and output collection at specified intervals.
+ *
+ * @property lifecycleManager Reference to the [FmuLifecycleManager] managing the FMU structure.
+ * @property infoManagerFmu Reference to the [InfoManagerFmu] for FMU metadata queries.
+ */
 @OptIn(ExperimentalForeignApi::class)
 class SimulationManager(
     val lifecycleManager: FmuLifecycleManager,
     val infoManagerFmu: InfoManagerFmu
 ) {
+    /**
+     * Indicates whether the simulation has been set up and is ready for execution.
+     */
     private var isSimulationSetup: Boolean = false
+    /**
+     * Current simulation configuration, null if not set.
+     */
     var simulationConfig: SimulationConfig? = null
+    /**
+     * Results from the last executed simulation, null if no simulation has been run.
+     */
     var simulationResult: SimulationResult? = null
 
+    /**
+     * Sets up the experiment with the given configuration.
+     * Configures experiment parameters (tolerance, time bounds),
+     * and enters initialization mode. This must be called before [executeSimulation].
+     *
+     * @param config The [SimulationConfig] containing simulation parameters.
+     * @param experimentName The name to assign to the experiment instance. Defaults to "default".
+     * @throws IllegalStateException if instantiation or setup fails.
+     */
     fun setUpExperiment(config: SimulationConfig, experimentName: String = "default") {
         if (!isSimulationSetup) instantiate(config.experimentName)
 
@@ -50,6 +76,14 @@ class SimulationManager(
         fmi2_import_exit_initialization_mode(lifecycleManager.fmiStruct)
     }
 
+    /**
+     * Executes the configured simulation and collects results.
+     * Runs time-stepping simulation from start to stop time, recording variable values at each step.
+     * Variables are determined by the simulation configuration; if none specified, all FMU variables are recorded.
+     *
+     * @return [SimulationResult] containing timestamps and variable value history.
+     * @throws IllegalStateException if the simulation has not been set up or config is missing.
+     */
     fun executeSimulation(): SimulationResult {
         if (!isSimulationSetup) {
             throw IllegalStateException("Simulation not set up.")
@@ -148,6 +182,13 @@ class SimulationManager(
         }
     }
 
+    /**
+     * Instantiates an FMU instance for simulation.
+     * Creates a new FMU component ready for configuration and execution.
+     *
+     * @param experimentName The name to assign to the experiment instance. Defaults to "default".
+     * @throws IllegalStateException if the experiment is already instantiated or instantiation fails.
+     */
     private fun instantiate(experimentName: String = "default") {
         if(isSimulationSetup) {
             throw IllegalStateException("Already instanced simulation")

@@ -21,8 +21,22 @@ import libfmi.fmi2_import_get_variable_name
 import wrapper.fmuData.info.FmuInfo
 import wrapper.fmuLifecycle.FmuLifecycleManager
 
+/**
+ * Manages extraction and processing of FMU metadata and variables.
+ *
+ * @property lifecycle Reference to the [FmuLifecycleManager] that manages the FMU structure.
+ * @throws IllegalStateException if the FMU structure has not been initialized.
+ */
 @OptIn(ExperimentalForeignApi::class)
 class InfoManagerFmu(val lifecycle: FmuLifecycleManager) {
+    /**
+     * Extracts complete FMU metadata including model information and variable list.
+     * Queries the FMU structure for model name, description, version, default experiment parameters,
+     * FMU kind (type of FMU), and enumerates all available variables.
+     *
+     * @return [FmuInfo] data class containing all extracted FMU metadata.
+     * @throws IllegalStateException if the FMU structure is not initialized or variable extraction fails.
+     */
     fun extractFmuInfo(): FmuInfo {
         val fmi = requireNotNull(lifecycle.fmiStruct) { "FMU not started" }
 

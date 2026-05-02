@@ -21,9 +21,9 @@ dependencies {
     cLibrary(fmilib)
 }
 val platformDirName = mapOf(
-    "macosArm64"  to "mac-aarch64",
-    "linuxX64"    to "linux-amd64",
-    "mingwX64"    to "windows-amd64"
+    "macosArm64" to "mac-aarch64",
+    "linuxX64" to "linux-amd64",
+    "mingwX64" to "windows-amd64"
 )
 
 val fmilibInstallDir = project(":fmilib").layout.buildDirectory.dir("fmilib-install").get().asFile

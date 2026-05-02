@@ -16,19 +16,51 @@ import libfmi.fmi_import_free_context
 import libfmi.fmi_import_get_fmi_version
 import libfmi.fmi_version_2_0_enu
 import logger.Logger
-import wrapper.DLLSTATUS
 
+private enum class DLLSTATUS {
+    /**
+     * Indicates successful FMU DLL loading.
+     */
+    OK,
+    /**
+     * Indicates failure during FMU DLL loading.
+     */
+    ERROR
+}
+
+/**
+ * Manages the complete lifecycle of an FMU from loading through cleanup.
+ * Handles FMI context creation, XML parsing, DLL loading, and resource deallocation.
+ * Responsible for initializing FMILib and detecting FMU capabilities (Model Exchange vs Co-Simulation).
+ *
+ * @property fmuFile The resolved path to the FMU file.
+ * @property unpackDir The directory where FMU contents will be extracted.
+ * @property context FMILib context pointer, null if creation failed.
+ * @property fmiStruct Parsed FMI structure, null until [start] is called.
+ * @property canSimulate Boolean flag indicating if the FMU supports Co-Simulation (true if not Model Exchange only).
+ * @throws IllegalStateException if XML parsing fails or DLL loading encounters an error.
+ */
 @OptIn(ExperimentalForeignApi::class)
 class FmuLifecycleManager(val fmuFile: String, val unpackDir: String) {
     val context: CPointer<fmi_import_context_t>? = fmi_import_allocate_context(null)
     var fmiStruct: CPointer<cnames.structs.fmi2_import_t>? = null
         private set
+    /**
+     * Indicates whether the FMU can be simulated. True for Co-Simulation FMUs, false for Model Exchange only.
+     */
     var canSimulate: Boolean = false
 
     init {
         fmi_import_get_fmi_version(this.context, fmuFile, unpackDir)
     }
 
+    /**
+     * Initializes the FMU lifecycle by parsing XML and loading the DLL.
+     * Must be called before any operation on the FMU.
+     * Determines the FMU type and checks if simulation is supported.
+     *
+     * @throws IllegalStateException if XML parsing fails or the FMU binary cannot be loaded.
+     */
     fun start() {
         fmiStruct = fmi2_import_parse_xml(context, unpackDir, null)
         requireNotNull(fmiStruct) {
@@ -51,6 +83,12 @@ class FmuLifecycleManager(val fmuFile: String, val unpackDir: String) {
         }
     }
 
+    /**
+     * Terminates and releases all FMU resources including the FMI structure and context.
+     * Should be called when the FMU is no longer needed to prevent memory leaks.
+     *
+     * @throws IllegalStateException if an error occurs during resource cleanup.
+     */
     fun close() {
         try {
             fmi2_import_terminate(fmiStruct)

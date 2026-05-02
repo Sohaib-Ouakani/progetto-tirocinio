@@ -11,33 +11,22 @@ import wrapper.simulation.manager.SimulationManager
 import wrapper.simulation.results.SimulationResult
 
 /**
- * Status of DLL loading operations.
- */
-enum class DLLSTATUS {
-    /**
-     * Status for successful loading operation.
-     */
-    OK,
-    /**
-     * Status for failed loading operation.
-     */
-    ERROR
-}
-
-/**
  * Low-level wrapper for native FMI (Functional Mock-up Interface) operations.
  * Provides direct access to FMILib functions for loading, configuring, and running FMU simulations.
- * Handles platform-specific recompilation on macOS and manages FMU lifecycle.
+ * Handles platform-specific preprocessing and delegates simulation management to specialized managers.
  *
- * @property path Path to the FMU file.
- * @property resources Path to the resource directory.
- * @property modelsDir Directory where models are stored.
- * @property context FMILib context pointer.
- * @property fmi FMILib import pointer.
- * @property fmuInfo Information about the loaded FMU.
- * @property dllStatus Status of DLL loading.
- * @property experimentInstance Current experiment instance ID, null if not instantiated.
- * @property simulationConfig Current simulation configuration, null if not set.
+ * This class orchestrates the FMU lifecycle through three main managers:
+ * - [FmuLifecycleManager]: Handles FMU loading and resource management
+ * - [InfoManagerFmu]: Extracts and manages FMU metadata
+ * - [SimulationManager]: Manages simulation execution and results
+ *
+ * @property path Path to the FMU file to be loaded.
+ * @property resources Path to the resource directory containing FMU contents.
+ * @property modelsDir Directory where compiled and preprocessed models are stored.
+ * @property fmuLifecycle Manager for FMU loading, parsing, and cleanup.
+ * @property infoFmu Manager for extracting FMU metadata and variables.
+ * @property simulationManager Manager for simulation setup, execution, and results collection.
+ * @throws IllegalStateException if FMU binary loading fails or XML parsing is unsuccessful.
  */
 @OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 class NativeFmiWrapper(
@@ -58,6 +47,14 @@ class NativeFmiWrapper(
         fmuLifecycle.start()
     }
 
+    /**
+     * Extracts and returns the FMU metadata.
+     * Parses FMU information including model name, description, author, version, default experiment
+     * parameters, FMU kind (Model Exchange, Co-Simulation, or both), and available variables.
+     *
+     * @return [FmuInfo] containing the complete FMU metadata.
+     * @throws IllegalStateException if the FMU has not been loaded or XML parsing failed.
+     */
     fun getInfo(): FmuInfo {
         return infoFmu.extractFmuInfo()
     }
@@ -65,9 +62,11 @@ class NativeFmiWrapper(
     /**
      * Sets up the experiment with the given simulation configuration.
      * Configures the FMU for simulation including tolerance, start/stop times, and enters initialization mode.
-     * If no experiment instance exists, one will be created automatically.
+     * If no experiment instance exists, one will be created automatically with the name from the configuration.
      *
-     * @param config The simulation configuration containing parameters like start time, stop time, tolerance, etc.
+     * @param config The [SimulationConfig] containing parameters like start time, stop time, step size, tolerance,
+     * and output variables.
+     * @throws IllegalStateException if the FMU is not loaded or configuration is invalid.
      */
     fun setupExperiment(config: SimulationConfig) {
         simulationManager.setUpExperiment(config)
@@ -76,20 +75,22 @@ class NativeFmiWrapper(
     /**
      * Executes the simulation experiment and returns the results.
      * Runs the simulation from start time to stop time, recording variable values at each time step.
-     * Uses the variables specified in the simulation config, or all variables if none specified.
+     * Uses the variables specified in the simulation config. If none are specified, all FMU variables are recorded.
      *
      * @return A [SimulationResult] containing timestamps and variable values from the simulation.
-     * @throws IllegalStateException if no experiment instance or simulation config is set.
+     * @throws IllegalStateException if the experiment is not set up or simulation config is not initialized.
      */
     fun executeExperiment(): SimulationResult {
         return simulationManager.executeSimulation()
     }
 
     /**
-     * Closes the FMU wrapper and releases all associated resources.
-     * This method is called automatically when using try-with-resources or when the object is garbage collected.
-     * Safely handles cleanup even if some operations fail, using runCatching to prevent exceptions.
-     * After calling this method, the wrapper cannot be used for further operations.
+     * Closes the FMU wrapper and releases all associated native resources.
+     * Internally delegates to [FmuLifecycleManager.close].
+     * Should be called when done with the FMU wrapper to prevent resource leaks.
+     * Can be used automatically with try-with-resources statements due to [AutoCloseable] implementation.
+     *
+     * @throws IllegalStateException if an error occurs during FMU cleanup.
      */
     override fun close() {
         fmuLifecycle.close()
