@@ -4,6 +4,7 @@ import preprocessor.factory.createPreprocessor
 import wrapper.DLLSTATUS
 import wrapper.NativeFmiWrapper
 import wrapper.fmuData.info.FmuInfo
+import wrapper.fmuLifecycle.FmuLifecycleManager
 import wrapper.simulation.config.SimulationConfig
 import wrapper.simulation.results.SimulationResult
 
@@ -24,14 +25,8 @@ class Fmu(val fmuPath: String, val resourcesPath: String, val modelsDir: String)
         modelsDir,
         createPreprocessor()
     )
-    val fmuInfo: FmuInfo = fmi.fmuInfo
+    val fmuInfo: FmuInfo = fmi.getInfo()
     private var fmiClosed = false
-
-    init {
-        if(fmi.dllStatus != DLLSTATUS.OK) {
-            throw IllegalArgumentException("Error when loading DLL")
-        }
-    }
 
     /**
      * Initializes the FMU experiment with the given configuration.
