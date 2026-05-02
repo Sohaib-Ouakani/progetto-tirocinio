@@ -75,7 +75,6 @@ kotlin {
     }
 
     applyDefaultHierarchyTemplate()
-    applyDefaultHierarchyTemplate()
 
     val os = OperatingSystem.current()
     when {
