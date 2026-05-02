@@ -22,7 +22,6 @@ import wrapper.simulation.results.SimulationResult
  */
 class Fmu : FmuService {
     private var wrapper: NativeFmiWrapper? = null
-    private var fmiClosed = false
 
     /**
      * Closes the FMU and releases all associated resources.
@@ -34,7 +33,7 @@ class Fmu : FmuService {
         wrapper = null
     }
 
-    override fun load(fmuPath: String, resourcesPath: String, modelsDir: String): Boolean {
+    override fun load(fmuPath: String, resourcesPath: String, modelsDir: String) {
         close()
         wrapper = NativeFmiWrapper(
             fmuPath,
@@ -42,7 +41,6 @@ class Fmu : FmuService {
             modelsDir,
             createPreprocessor()
         )
-        return wrapper != null
     }
 
     override fun getInfo(): FmuInfo {
