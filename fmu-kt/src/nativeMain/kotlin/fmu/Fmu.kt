@@ -20,43 +20,9 @@ import wrapper.simulation.results.SimulationResult
  * @property fmuInfo FMU metadata including model name, description, and available variables.
  * @throws IllegalArgumentException if the FMU cannot be loaded or is corrupted.
  */
-class Fmu(val fmuPath: String, val resourcesPath: String, val modelsDir: String) : AutoCloseable {
-    private val fmi: NativeFmiWrapper = NativeFmiWrapper(
-        fmuPath,
-        resourcesPath,
-        modelsDir,
-        createPreprocessor()
-    )
-    val fmuInfo: FmuInfo = fmi.getInfo()
+class Fmu : FmuService {
+    private var wrapper: NativeFmiWrapper? = null
     private var fmiClosed = false
-
-    /**
-     * Initializes the FMU experiment with the given configuration.
-     * Sets up the experiment parameters but does not start the simulation.
-     *
-     * @param config The simulation configuration to use.
-     * @throws IllegalStateException if the FMU has already been closed.
-     */
-    fun initializeExperiment(config: SimulationConfig) {
-        checkFmiClosed()
-       fmi.setupExperiment(config)
-    }
-
-    /**
-     * Starts and executes the simulation experiment.
-     * Runs the simulation from start time to stop time using the configured parameters.
-     *
-     * @return The [SimulationResult] containing timestamps and variable values from the simulation.
-     * @throws IllegalStateException if the FMU has already been closed.
-     */
-    fun startExperiment(): SimulationResult {
-        checkFmiClosed()
-        return fmi.executeExperiment()
-    }
-
-    private fun checkFmiClosed(){
-        check(!fmiClosed) { "FMU già chiuso" }
-    }
 
     /**
      * Closes the FMU and releases all associated resources.
@@ -64,9 +30,28 @@ class Fmu(val fmuPath: String, val resourcesPath: String, val modelsDir: String)
      * Safe to call multiple times.
      */
     override fun close() {
-        if (!fmiClosed) {
-            fmi.close()
-            fmiClosed = true
-        }
+        wrapper?.close()
+        wrapper = null
+    }
+
+    override fun load(fmuPath: String, resourcesPath: String, modelsDir: String): Boolean {
+        close()
+        wrapper = NativeFmiWrapper(
+            fmuPath,
+            resourcesPath,
+            modelsDir,
+            createPreprocessor()
+        )
+        return wrapper != null
+    }
+
+    override fun getInfo(): FmuInfo {
+        return wrapper?.getInfo() ?: throw IllegalStateException("Cannot get info: FMU not loaded")
+    }
+
+    override fun simulate(config: SimulationConfig): SimulationResult {
+        val fmi = wrapper ?: throw IllegalStateException("Cannot simulate: FMU not loaded")
+        fmi.setupExperiment(config)
+        return fmi.executeExperiment()
     }
 }

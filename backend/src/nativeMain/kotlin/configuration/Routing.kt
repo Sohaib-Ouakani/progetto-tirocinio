@@ -4,7 +4,7 @@ import io.ktor.server.application.*
 import io.ktor.server.application.hooks.MonitoringEvent
 import io.ktor.server.routing.*
 import io.ktor.server.response.*
-import fmu.Fmu
+import fmu.FmuService
 import io.ktor.http.ContentDisposition
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -20,13 +20,11 @@ import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
 import resources.manager.ResourceManager
 
-fun Application.configureRouting(resourceManger: ResourceManager) {
-    var fmu: Fmu? = null
+fun Application.configureRouting(resourceManger: ResourceManager, fmuService: FmuService) {
 
     install(createApplicationPlugin("FmuCleanup") {
         on(MonitoringEvent(ApplicationStopped)) {
-            fmu?.close()
-            fmu = null
+            fmuService.close()
         }
     })
 
@@ -43,8 +41,7 @@ fun Application.configureRouting(resourceManger: ResourceManager) {
                             return@get call.respondText("Error upload FMU first", status = HttpStatusCode.BadRequest)
                         }
 
-                        fmu?.close() // Close previous FMU if it exists
-                        fmu = Fmu(
+                        fmuService.load(
                             resourceManger.fmuPath.toString(),
                             resourceManger.extractedDirPath.toString(),
                             resourceManger.uploadDir.toString()
@@ -65,13 +62,14 @@ fun Application.configureRouting(resourceManger: ResourceManager) {
             route("/info") {
                 install(ContentNegotiation) { json() }
                 get {
-                    val currentFmu = fmu ?: return@get call.respondText("please initiate...", status = HttpStatusCode.BadRequest)
                     try {
-                        val result = currentFmu.fmuInfo
+                        val result = fmuService.getInfo()
                         call.respond(result)
-                    } finally {
-                        currentFmu.close()
-                        fmu = null
+                    } catch (e: Exception) {
+                        return@get call.respondText(
+                            "Error while getting fmu info: ${e.message}",
+                            status = HttpStatusCode.BadRequest
+                        )
                     }
                 }
             }
