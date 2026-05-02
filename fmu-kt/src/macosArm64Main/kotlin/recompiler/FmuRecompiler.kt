@@ -14,7 +14,7 @@ import utility.ProcessExecution
  * This class handles the extraction of FMU contents, compilation of source files,
  * linking into universal binaries supporting multiple architectures, and repackaging.
  */
-actual class FmuRecompiler {
+class FmuRecompiler {
     private val exec = ProcessExecution()
     private val fs = FilesystemManager()
     private val packager = FmuPackager(exec)
@@ -34,7 +34,7 @@ actual class FmuRecompiler {
      * @param outputFmu The file path where the recompiled FMU will be saved.
      * @throws IllegalStateException if the input FMU does not exist or lacks source files.
      */
-    actual fun recompile(inputFmu: String, outputFmu: String) {
+     fun recompile(inputFmu: String, outputFmu: String) {
         val input = fs.pathAbsolute(inputFmu)
         val output = fs.pathAbsolute(outputFmu)
         check(fs.fileExists(input)) { "FMU not found: $input" }

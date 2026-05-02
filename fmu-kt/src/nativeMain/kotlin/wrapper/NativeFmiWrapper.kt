@@ -47,10 +47,10 @@ import libfmi.fmi_import_context_t
 import libfmi.fmi_import_free_context
 import libfmi.fmi_import_get_fmi_version
 import libfmi.fmi_version_2_0_enu
+import preprocessor.FmuPreprocessor
 import wrapper.fmuData.info.FmuInfo
 import wrapper.simulation.config.SimulationConfig
 import wrapper.simulation.results.SimulationResult
-import recompiler.FmuRecompiler
 
 /**
  * Status of DLL loading operations.
@@ -82,7 +82,13 @@ enum class DLLSTATUS {
  * @property simulationConfig Current simulation configuration, null if not set.
  */
 @OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
-class NativeFmiWrapper(val path: String, val resources: String, val modelsDir: String) : AutoCloseable {
+class NativeFmiWrapper(
+    val path: String,
+    val resources: String,
+    val modelsDir: String,
+    preprocessor: FmuPreprocessor
+) : AutoCloseable {
+
     var context: CPointer<fmi_import_context_t>? = fmi_import_allocate_context(null)
     var fmi: CPointer<cnames.structs.fmi2_import_t>? = null
     var fmuInfo: FmuInfo
@@ -91,16 +97,8 @@ class NativeFmiWrapper(val path: String, val resources: String, val modelsDir: S
     var simulationConfig: SimulationConfig? = null
 
     init {
-        val fmuOutputPath = "$modelsDir/result.fmu"
-        var fmuFile = fmuOutputPath
-        if (Platform.osFamily == OsFamily.MACOSX) {
-            println("Running on  MacOS, recompiling FMU")
-            val recompiler = FmuRecompiler()
-            recompiler.recompile(path, fmuFile)
-        } else {
-            fmuFile = path
-            println("Running on Windows, skipping FMU recompilation")
-        }
+        var fmuFile = preprocessor.prepare(path, modelsDir)
+
         val version = fmi_import_get_fmi_version(
             this.context,
             fmuFile,

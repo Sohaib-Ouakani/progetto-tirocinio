@@ -1,5 +1,6 @@
 package fmu
 
+import preprocessor.factory.createPreprocessor
 import wrapper.DLLSTATUS
 import wrapper.NativeFmiWrapper
 import wrapper.fmuData.info.FmuInfo
@@ -17,7 +18,12 @@ import wrapper.simulation.results.SimulationResult
  * @property fmuInfo Information about the loaded FMU.
  */
 class Fmu(val fmuPath: String, val resourcesPath: String, val modelsDir: String) : AutoCloseable {
-    private val fmi: NativeFmiWrapper = NativeFmiWrapper(fmuPath, resourcesPath, modelsDir)
+    private val fmi: NativeFmiWrapper = NativeFmiWrapper(
+        fmuPath,
+        resourcesPath,
+        modelsDir,
+        createPreprocessor()
+    )
     val fmuInfo: FmuInfo = fmi.fmuInfo
     private var fmiClosed = false
 

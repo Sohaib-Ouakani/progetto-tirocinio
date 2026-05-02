@@ -88,6 +88,9 @@ kotlin {
 //    }
 
     applyDefaultHierarchyTemplate()
+//    macosArm64(nativeSetup)
+//    linuxX64(nativeSetup)
+//    mingwX64(nativeSetup)
 
     val os = OperatingSystem.current()
     when {
