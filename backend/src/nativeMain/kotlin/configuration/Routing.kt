@@ -66,9 +66,25 @@ fun Application.configureRouting(resourceManger: ResourceManagerService, fmuServ
             }
 
             post("/upload") {
-                val fileName = call.request.header(HttpHeaders.ContentDisposition)
-                    ?.let { ContentDisposition.parse(it).parameter(ContentDisposition.Parameters.FileName) }
-                    ?: "uploaded_file.fmu"
+                val header = call.request.header(HttpHeaders.ContentDisposition)
+                    ?: run {
+                        call.respondText(
+                            "Missing Content-Disposition header with filename",
+                            status = HttpStatusCode.BadRequest
+                        )
+                        return@post
+                    }
+
+                val fileName = ContentDisposition.parse(header)
+                    .parameter(ContentDisposition.Parameters.FileName)
+                    ?: run {
+                        call.respondText(
+                            "Filename not found in Content-Disposition header",
+                            status = HttpStatusCode.BadRequest
+                        )
+                        return@post
+                    }
+
                 val safeName = fileName.replace(Regex("[/\\\\:*?\"<>|]"), "_")
 
                 // Reject if not .fmu (case insensitive)
