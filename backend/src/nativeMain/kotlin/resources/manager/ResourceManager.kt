@@ -1,5 +1,6 @@
 package resources.manager
 
+import fmu.FmuPaths
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 
@@ -51,5 +52,15 @@ class ResourceManager(arg: String?) {
 
     fun updateFmuPath() {
         fmuPath = findCurrentFmu()
+    }
+
+    fun fmuPaths(): FmuPaths {
+        val path = fmuPath ?: error("No FMU uploaded yet")
+
+        return FmuPaths(
+            fmuPath = path.toString(),
+            extractedDir = extractedDirPath.toString(),
+            modelsDir = uploadDir.toString()
+        )
     }
 }

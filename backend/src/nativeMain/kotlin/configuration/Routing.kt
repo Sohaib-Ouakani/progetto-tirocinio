@@ -41,11 +41,7 @@ fun Application.configureRouting(resourceManger: ResourceManager, fmuService: Fm
                             return@get call.respondText("Error upload FMU first", status = HttpStatusCode.BadRequest)
                         }
 
-                        fmuService.load(
-                            resourceManger.fmuPath.toString(),
-                            resourceManger.extractedDirPath.toString(),
-                            resourceManger.uploadDir.toString()
-                        )
+                        fmuService.load(resourceManger.fmuPaths())
                     } catch (e: Exception) {
                         println("Error initializing FMU: ${e.message}")
                         call.respondText(
