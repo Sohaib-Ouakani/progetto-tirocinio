@@ -1,5 +1,7 @@
 package wrapper.fmuData.infoManager
 
+import cnames.structs.fmi2_import_t
+import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.toKString
 import libfmi.fmi2_fmu_kind_cs
@@ -28,7 +30,7 @@ import wrapper.fmuLifecycle.FmuLifecycleManager
  * @throws IllegalStateException if the FMU structure has not been initialized.
  */
 @OptIn(ExperimentalForeignApi::class)
-class InfoManagerFmu(val lifecycle: FmuLifecycleManager) {
+class InfoManagerFmu(private val fmiStruct: CPointer<fmi2_import_t>) {
     /**
      * Extracts complete FMU metadata including model information and variable list.
      * Queries the FMU structure for model name, description, version, default experiment parameters,
@@ -38,16 +40,14 @@ class InfoManagerFmu(val lifecycle: FmuLifecycleManager) {
      * @throws IllegalStateException if the FMU structure is not initialized or variable extraction fails.
      */
     fun extractFmuInfo(): FmuInfo {
-        val fmi = requireNotNull(lifecycle.fmiStruct) { "FMU not started" }
-
-        val kind = when(fmi2_import_get_fmu_kind(fmi)) {
+        val kind = when(fmi2_import_get_fmu_kind(fmiStruct)) {
             fmi2_fmu_kind_me -> "Model Exchange"
             fmi2_fmu_kind_cs -> "Co-Simulation"
             fmi2_fmu_kind_me_and_cs -> "Model Exchange and Co-Simulation"
             fmi2_fmu_kind_unknown -> "Unknown"
             else -> ""
         }
-        val varList = fmi2_import_get_variable_list(fmi, 0)
+        val varList = fmi2_import_get_variable_list(fmiStruct, 0)
         val varlistSize = fmi2_import_get_variable_list_size(varList)
         val varibles = mutableListOf<String>()
 
@@ -58,14 +58,14 @@ class InfoManagerFmu(val lifecycle: FmuLifecycleManager) {
         }
 
         return FmuInfo(
-            fmi2_import_get_model_name(fmi)?.toKString(),
-            fmi2_import_get_description(fmi)?.toKString(),
-            fmi2_import_get_author(fmi)?.toKString(),
+            fmi2_import_get_model_name(fmiStruct)?.toKString(),
+            fmi2_import_get_description(fmiStruct)?.toKString(),
+            fmi2_import_get_author(fmiStruct)?.toKString(),
 
-            fmi2_import_get_model_version(fmi)?.toKString(),
-            fmi2_import_get_default_experiment_start(fmi),
-            fmi2_import_get_default_experiment_stop(fmi),
-            fmi2_import_get_default_experiment_step(fmi),
+            fmi2_import_get_model_version(fmiStruct)?.toKString(),
+            fmi2_import_get_default_experiment_start(fmiStruct),
+            fmi2_import_get_default_experiment_stop(fmiStruct),
+            fmi2_import_get_default_experiment_step(fmiStruct),
             kind,
             varibles
         )

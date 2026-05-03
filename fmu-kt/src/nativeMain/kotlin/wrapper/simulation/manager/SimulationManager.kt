@@ -1,5 +1,7 @@
 package wrapper.simulation.manager
 
+import cnames.structs.fmi2_import_t
+import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.DoubleVar
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.allocArray
@@ -33,8 +35,8 @@ import wrapper.simulation.results.SimulationResult
  */
 @OptIn(ExperimentalForeignApi::class)
 class SimulationManager(
-    val lifecycleManager: FmuLifecycleManager,
-    val infoManagerFmu: InfoManagerFmu
+    private val fmiStruct: CPointer<fmi2_import_t>,
+    private val infoManagerFmu: InfoManagerFmu
 ) {
     /**
      * Indicates whether the simulation has been set up and is ready for execution.
@@ -64,7 +66,7 @@ class SimulationManager(
         simulationConfig = config
 
         fmi2_import_setup_experiment(
-            lifecycleManager.fmiStruct,
+            fmiStruct,
             if (config.tolerance != null) 1 else 0,
             config.tolerance ?: 0.0,
             config.startTime,
@@ -72,8 +74,8 @@ class SimulationManager(
             config.stopTime ?: 0.0
         )
 
-        fmi2_import_enter_initialization_mode(lifecycleManager.fmiStruct)
-        fmi2_import_exit_initialization_mode(lifecycleManager.fmiStruct)
+        fmi2_import_enter_initialization_mode(fmiStruct)
+        fmi2_import_exit_initialization_mode(fmiStruct)
     }
 
     /**
@@ -114,7 +116,7 @@ class SimulationManager(
             memScoped {
                 // Risolvi i value reference per ogni variabile
                 val vrMap = variablesToRead.associateWith { varName ->
-                    val variable = fmi2_import_get_variable_by_name(lifecycleManager.fmiStruct, varName)
+                    val variable = fmi2_import_get_variable_by_name(fmiStruct, varName)
                         ?: error("Variabile '$varName' non trovata nell'FMU")
                     fmi2_import_get_variable_vr(variable)
                 }
@@ -133,14 +135,14 @@ class SimulationManager(
                 while (time < stopTime) {
 
                     fmi2_import_do_step(
-                        lifecycleManager.fmiStruct,
+                        fmiStruct,
                         time,
                         step,
                         1
                     )
 
                     fmi2_import_get_real(
-                        lifecycleManager.fmiStruct,
+                        fmiStruct,
                         vrArray,
                         n.toULong(),
                         valueArray
@@ -166,8 +168,8 @@ class SimulationManager(
             return results
         } finally {
             try {
-                fmi2_import_terminate(lifecycleManager.fmiStruct)
-                fmi2_import_free_instance(lifecycleManager.fmiStruct)
+                fmi2_import_terminate(fmiStruct)
+                fmi2_import_free_instance(fmiStruct)
             } catch (e: Exception) {
                 throw IllegalStateException("Error during simulation cleanup: ${e.message}", e)
             }
@@ -188,7 +190,7 @@ class SimulationManager(
             throw IllegalStateException("Already instanced simulation")
         }
         val status = fmi2_import_instantiate(
-            lifecycleManager.fmiStruct,
+            fmiStruct,
             experimentName,
             fmi2_type_t.fmi2_cosimulation,
             null,

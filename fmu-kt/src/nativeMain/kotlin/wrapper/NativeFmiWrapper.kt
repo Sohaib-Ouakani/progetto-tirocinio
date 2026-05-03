@@ -40,11 +40,13 @@ class NativeFmiWrapper(
         preprocessor.prepare(path, modelsDir),
         extractedDir
     )
-    private val infoFmu: InfoManagerFmu = InfoManagerFmu(fmuLifecycle)
-    private val simulationManager: SimulationManager = SimulationManager(fmuLifecycle, infoFmu)
-
+    private val infoFmu: InfoManagerFmu
+    private val simulationManager: SimulationManager
     init {
         fmuLifecycle.start()
+        val struct = fmuLifecycle.requireFmiStruct()
+        infoFmu = InfoManagerFmu(struct)
+        simulationManager = SimulationManager(struct, infoFmu)
     }
 
     /**
