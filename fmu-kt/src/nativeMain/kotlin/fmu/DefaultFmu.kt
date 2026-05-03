@@ -20,7 +20,7 @@ import wrapper.simulation.results.SimulationResult
  * @property fmuInfo FMU metadata including model name, description, and available variables.
  * @throws IllegalArgumentException if the FMU cannot be loaded or is corrupted.
  */
-class DeafultFmuService : FmuService {
+class DefaultFmu : FmuService {
     private var wrapper: NativeFmiWrapper? = null
 
     /**
