@@ -21,7 +21,7 @@ import wrapper.simulation.results.SimulationResult
  * - [SimulationManager]: Manages simulation execution and results
  *
  * @property path Path to the FMU file to be loaded.
- * @property resources Path to the resource directory containing FMU contents.
+ * @property extractedDir Path to the resource directory containing FMU contents.
  * @property modelsDir Directory where compiled and preprocessed models are stored.
  * @property fmuLifecycle Manager for FMU loading, parsing, and cleanup.
  * @property infoFmu Manager for extracting FMU metadata and variables.
@@ -31,14 +31,14 @@ import wrapper.simulation.results.SimulationResult
 @OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 class NativeFmiWrapper(
     val path: String,
-    val resources: String,
+    val extractedDir: String,
     val modelsDir: String,
     preprocessor: FmuPreprocessor
 ) : AutoCloseable {
 
     private val fmuLifecycle: FmuLifecycleManager = FmuLifecycleManager(
         preprocessor.prepare(path, modelsDir),
-        resources
+        extractedDir
     )
     private val infoFmu: InfoManagerFmu = InfoManagerFmu(fmuLifecycle)
     private val simulationManager: SimulationManager = SimulationManager(fmuLifecycle, infoFmu)

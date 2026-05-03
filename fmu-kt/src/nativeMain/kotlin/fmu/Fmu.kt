@@ -33,12 +33,12 @@ class Fmu : FmuService {
         wrapper = null
     }
 
-    override fun load(fmuPath: String, resourcesPath: String, modelsDir: String) {
+    override fun load(paths: FmuPaths) {
         close()
         wrapper = NativeFmiWrapper(
-            fmuPath,
-            resourcesPath,
-            modelsDir,
+            paths.fmuPath,
+            paths.extractedDir,
+            paths.modelsDir,
             createPreprocessor()
         )
     }
