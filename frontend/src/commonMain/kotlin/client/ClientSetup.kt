@@ -35,7 +35,7 @@ object ApiClient {
 
 
 suspend fun initApi(): Boolean {
-    val response = ApiClient.client.get("http://localhost:8080/fmi/init")
+    val response = ApiClient.client.post("http://localhost:8080/fmi/init")
 
     return response.status == HttpStatusCode.OK
 }

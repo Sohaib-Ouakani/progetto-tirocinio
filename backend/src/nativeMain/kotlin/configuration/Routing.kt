@@ -33,20 +33,20 @@ fun Application.configureRouting(resourceManger: ResourceManagerService, fmuServ
         route("/fmi") {
             install(ContentNegotiation) { json() }
             route("/init") {
-                get {
+                post {
                     try {
                         fmuService.load(resourceManger.fmuPaths())
                     } catch (e: NoSuchElementException) {
                         BackendLogger.e("No FMU uploaded yet")
                         call.respondText(e.message ?: "No FMU uploaded", status = HttpStatusCode.BadRequest)
-                        return@get
+                        return@post
                     } catch (e: Exception) {
                         BackendLogger.e("Error initializing FMU: ${e.message}")
                         call.respondText(
                             "Error initializing FMU: ${e.message}",
                             status = HttpStatusCode.InternalServerError
                         )
-                        return@get
+                        return@post
                     }
 
                     call.respondText("to view info about the fmu type /fmi/info")
