@@ -36,9 +36,12 @@ fun Application.configureRouting(resourceManger: ResourceManagerService, fmuServ
                 get {
                     try {
                         fmuService.load(resourceManger.fmuPaths())
+                    } catch (e: NoSuchElementException) {
+                        BackendLogger.e("No FMU uploaded yet")
+                        call.respondText(e.message ?: "No FMU uploaded", status = HttpStatusCode.BadRequest)
+                        return@get
                     } catch (e: Exception) {
                         BackendLogger.e("Error initializing FMU: ${e.message}")
-
                         call.respondText(
                             "Error initializing FMU: ${e.message}",
                             status = HttpStatusCode.InternalServerError
@@ -74,7 +77,6 @@ fun Application.configureRouting(resourceManger: ResourceManagerService, fmuServ
                         )
                         return@post
                     }
-
                 val fileName = ContentDisposition.parse(header)
                     .parameter(ContentDisposition.Parameters.FileName)
                     ?: run {
@@ -84,9 +86,7 @@ fun Application.configureRouting(resourceManger: ResourceManagerService, fmuServ
                         )
                         return@post
                     }
-
                 val safeName = fileName.replace(Regex("[/\\\\:*?\"<>|]"), "_")
-
                 // Reject if not .fmu (case insensitive)
                 if (!safeName.lowercase().endsWith(".fmu")) {
                     BackendLogger.w("Non FMU file upload attempted: $safeName")
@@ -96,11 +96,10 @@ fun Application.configureRouting(resourceManger: ResourceManagerService, fmuServ
                     )
                     return@post
                 }
+
                 val channel: ByteReadChannel = call.receiveChannel()
                 val bytes = channel.readRemaining().readByteArray()
-
                 resourceManger.saveUpload(safeName, bytes)
-
                 call.respondText("File '$safeName' salvato.", status = HttpStatusCode.OK)
             }
         }

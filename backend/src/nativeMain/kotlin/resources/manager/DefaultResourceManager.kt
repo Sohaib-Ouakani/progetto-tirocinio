@@ -51,7 +51,7 @@ class DefaultResourceManager(arg: String?): ResourceManagerService {
     }
 
     override fun fmuPaths(): FmuPaths {
-        val path = fmuPath ?: error("No FMU uploaded yet")
+        val path = fmuPath ?: throw NoSuchElementException("No FMU uploaded yet")
 
         return FmuPaths(
             fmuPath = path.toString(),
@@ -61,8 +61,8 @@ class DefaultResourceManager(arg: String?): ResourceManagerService {
     }
 
     override fun saveUpload(fileName: String, data: ByteArray) {
-        val filePath = Path(uploadDir, fileName)
         resetResourcesDirectory()
+        val filePath = Path(uploadDir, fileName)
 
         SystemFileSystem.sink(filePath).buffered().use { it.write(data) }
         fmuPath = filePath
