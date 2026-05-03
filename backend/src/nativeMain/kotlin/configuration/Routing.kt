@@ -15,7 +15,7 @@ import io.ktor.server.request.receiveChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.readRemaining
 import kotlinx.io.readByteArray
-import logger.Logger
+import logger.BackendLogger
 import resources.manager.ResourceManagerService
 
 fun Application.configureRouting(resourceManger: ResourceManagerService, fmuService: FmuService) {
@@ -31,13 +31,13 @@ fun Application.configureRouting(resourceManger: ResourceManagerService, fmuServ
         get("/") { call.respondText("Welcome to the home of the api") }
 
         route("/fmi") {
+            install(ContentNegotiation) { json() }
             route("/init") {
-                install(ContentNegotiation) { json() }
                 get {
                     try {
                         fmuService.load(resourceManger.fmuPaths())
                     } catch (e: Exception) {
-                        Logger.e("Error initializing FMU: ${e.message}")
+                        BackendLogger.e("Error initializing FMU: ${e.message}")
 
                         call.respondText(
                             "Error initializing FMU: ${e.message}",
@@ -51,16 +51,16 @@ fun Application.configureRouting(resourceManger: ResourceManagerService, fmuServ
             }
 
             route("/info") {
-                install(ContentNegotiation) { json() }
                 get {
                     try {
                         val result = fmuService.getInfo()
                         call.respond(result)
                     } catch (e: Exception) {
-                        return@get call.respondText(
+                        call.respondText(
                             "Error while getting fmu info: ${e.message}",
-                            status = HttpStatusCode.BadRequest
+                            status = HttpStatusCode.InternalServerError
                         )
+                        return@get
                     }
                 }
             }
@@ -68,12 +68,12 @@ fun Application.configureRouting(resourceManger: ResourceManagerService, fmuServ
             post("/upload") {
                 val fileName = call.request.header(HttpHeaders.ContentDisposition)
                     ?.let { ContentDisposition.parse(it).parameter(ContentDisposition.Parameters.FileName) }
-                    ?: "uploaded_file"
+                    ?: "uploaded_file.fmu"
                 val safeName = fileName.replace(Regex("[/\\\\:*?\"<>|]"), "_")
 
                 // Reject if not .fmu (case insensitive)
                 if (!safeName.lowercase().endsWith(".fmu")) {
-                    Logger.w("Non FMU file upload attempted: $safeName")
+                    BackendLogger.w("Non FMU file upload attempted: $safeName")
                     call.respondText(
                         "Only .fmu files are allowed",
                         status = HttpStatusCode.BadRequest
@@ -86,7 +86,6 @@ fun Application.configureRouting(resourceManger: ResourceManagerService, fmuServ
                 resourceManger.saveUpload(safeName, bytes)
 
                 call.respondText("File '$safeName' salvato.", status = HttpStatusCode.OK)
-                return@post
             }
         }
     }

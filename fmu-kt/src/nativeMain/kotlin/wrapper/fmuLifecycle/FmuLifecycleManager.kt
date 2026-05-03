@@ -15,7 +15,7 @@ import libfmi.fmi_import_context_t
 import libfmi.fmi_import_free_context
 import libfmi.fmi_import_get_fmi_version
 import libfmi.fmi_version_2_0_enu
-import logger.Logger
+import logger.FmuKtLogger
 
 private enum class DLLSTATUS {
     /**
@@ -70,7 +70,7 @@ class FmuLifecycleManager(val fmuFile: String, val unpackDir: String) {
         val fmuKind = fmi2_import_get_fmu_kind(fmiStruct)
 
         if (fmuKind == fmi2_fmu_kind_me) {
-            Logger.i("FMU is of type Model Exchange. Simulation not supported.")
+            FmuKtLogger.i("FMU is of type Model Exchange. Simulation not supported.")
         } else {
             canSimulate = true
         }

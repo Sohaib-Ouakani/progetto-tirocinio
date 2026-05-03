@@ -1,6 +1,6 @@
 package logger
 
-object Logger {
+object FmuKtLogger {
     var enabled = true   // toggle off for release builds
 
     fun d(msg: String) = if (enabled) println("FMU-KT -- DEBUG: $msg") else Unit
