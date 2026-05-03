@@ -14,13 +14,11 @@ import io.ktor.server.request.header
 import io.ktor.server.request.receiveChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.readRemaining
-import kotlinx.io.buffered
-import kotlinx.io.files.Path
-import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
-import resources.manager.ResourceManager
+import logger.Logger
+import resources.manager.ResourceManagerService
 
-fun Application.configureRouting(resourceManger: ResourceManager, fmuService: FmuService) {
+fun Application.configureRouting(resourceManger: ResourceManagerService, fmuService: FmuService) {
 
     install(createApplicationPlugin("FmuCleanup") {
         on(MonitoringEvent(ApplicationStopped)) {
@@ -37,13 +35,10 @@ fun Application.configureRouting(resourceManger: ResourceManager, fmuService: Fm
                 install(ContentNegotiation) { json() }
                 get {
                     try {
-                        if(resourceManger.fmuPath == null) {
-                            return@get call.respondText("Error upload FMU first", status = HttpStatusCode.BadRequest)
-                        }
-
                         fmuService.load(resourceManger.fmuPaths())
                     } catch (e: Exception) {
-                        println("Error initializing FMU: ${e.message}")
+                        Logger.e("Error initializing FMU: ${e.message}")
+
                         call.respondText(
                             "Error initializing FMU: ${e.message}",
                             status = HttpStatusCode.InternalServerError
@@ -78,26 +73,20 @@ fun Application.configureRouting(resourceManger: ResourceManager, fmuService: Fm
 
                 // Reject if not .fmu (case insensitive)
                 if (!safeName.lowercase().endsWith(".fmu")) {
-                    println("Non FMU file upload attempted: $safeName")
+                    Logger.w("Non FMU file upload attempted: $safeName")
                     call.respondText(
                         "Only .fmu files are allowed",
                         status = HttpStatusCode.BadRequest
                     )
                     return@post
                 }
-
-                resourceManger.resetResourcesDirectory()
-
-                val filePath = Path(resourceManger.uploadDir, safeName)
-
                 val channel: ByteReadChannel = call.receiveChannel()
                 val bytes = channel.readRemaining().readByteArray()
 
-                SystemFileSystem.sink(filePath).buffered().use { it.write(bytes) }
-
-                resourceManger.updateFmuPath()
+                resourceManger.saveUpload(safeName, bytes)
 
                 call.respondText("File '$safeName' salvato.", status = HttpStatusCode.OK)
+                return@post
             }
         }
     }
