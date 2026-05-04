@@ -21,27 +21,6 @@ val platformDirName = mapOf(
 val fmilibInstallDir = project(":fmilib").layout.buildDirectory.dir("fmilib-install").get().asFile
 
 kotlin {
-
-    sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation(project(":fmu-kt"))
-                implementation(libs.kotlinxSerializationJson)
-                implementation(libs.ktor.serialization.kotlinx.json)
-                implementation(libs.ktor.server.core)
-                implementation(libs.ktor.server.cio)
-                implementation(libs.ktor.server.host.common)
-                implementation(libs.ktor.server.content.negotiation)
-                implementation(libs.ktor.server.cors)
-            }
-        }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
-        }
-    }
-
     val nativeSetup: KotlinNativeTarget.() -> Unit = {
         val platformDir = fmilibInstallDir
             .resolve(platformDirName[targetName] ?: error("Platform $targetName sconosciuta"))
@@ -82,6 +61,32 @@ kotlin {
         os.isLinux   -> linuxX64(nativeSetup)
         os.isWindows -> mingwX64(nativeSetup)
         else -> error("Unsupported OS: $os")
+    }
+
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(project(":fmu-kt"))
+                implementation(libs.kotlinxSerializationJson)
+                implementation(libs.ktor.serialization.kotlinx.json)
+                implementation(libs.ktor.server.core)
+                implementation(libs.ktor.server.cio)
+                implementation(libs.ktor.server.host.common)
+                implementation(libs.ktor.server.content.negotiation)
+                implementation(libs.ktor.server.cors)
+            }
+        }
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+        val nativeTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.ktor.client.cio) // for the test HTTP client
+            }
+        }
     }
 
     targets.all {
