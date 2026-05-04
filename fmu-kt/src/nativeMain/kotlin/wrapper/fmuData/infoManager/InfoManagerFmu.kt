@@ -67,7 +67,8 @@ class InfoManagerFmu(private val fmiStruct: CPointer<fmi2_import_t>) {
             fmi2_import_get_default_experiment_stop(fmiStruct),
             fmi2_import_get_default_experiment_step(fmiStruct),
             kind,
-            varibles
+            varibles,
+            canSimulate = kind != "Unknown" && kind != "Model Exchange"
         )
     }
 }
